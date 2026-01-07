@@ -12,6 +12,9 @@ const CHARTS = {
     // Part 2: The Energy Problem
     'chart-mismatch': 'mismatch.json',
     'chart-solar-paradox': 'solar_paradox.json',
+    'chart-solar-storage-ceiling': 'solar_storage_ceiling.json',
+    'chart-wind-storage-ceiling': 'wind_storage_ceiling.json',
+    'chart-solar-storage-lcoe': 'solar_storage_lcoe.json',
     'chart-effective-lcoe': 'effective_lcoe.json',
     'chart-marginal-energy': 'marginal_energy.json',
 

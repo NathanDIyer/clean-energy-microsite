@@ -373,8 +373,12 @@ def generate_resource_mix(zone_data, zone='California', cost_settings=None):
 
 
 def generate_leap_chart(zone_data, zone='California', cost_settings=None):
-    """Generate weekly production view showing how systems operate at different targets."""
-    print("Generating leap chart (weekly view)...")
+    """
+    Generate weekly production view using stacked bars (like main dashboard).
+    Finds the peak gas week for each target to show when gas is most needed.
+    Uses hybrid_mode for proper battery dispatch.
+    """
+    print("Generating leap chart (weekly stacked bars)...")
 
     if cost_settings is None:
         cost_settings = DEFAULT_COSTS.copy()
@@ -383,12 +387,6 @@ def generate_leap_chart(zone_data, zone='California', cost_settings=None):
     solar_profile = profiles['solar']
     wind_profile = profiles['wind']
     load_profile = profiles['load']
-
-    # Find a challenging winter week (low solar, variable wind)
-    # Use week starting at hour 720 (early January)
-    week_start = 720
-    week_hours = list(range(week_start, week_start + 168))
-    hours_in_week = list(range(168))
 
     # Run optimizations for two contrasting targets
     targets = [70, 95]
@@ -399,8 +397,8 @@ def generate_leap_chart(zone_data, zone='California', cost_settings=None):
         print(f"  {target}%: S={result['solar']:.0f}, W={result['wind']:.0f}, "
               f"B={result['storage']:.0f}, CF={result['clean_firm']:.0f}, LCOE=${result['lcoe']:.1f}")
 
-        # Run simulation to get hourly dispatch
-        (solar_out, wind_out, storage_out, _, gas_gen, _, _, _,
+        # Run simulation with hybrid_mode for proper battery dispatch
+        (solar_out, wind_out, battery_charge, battery_discharge, gas_gen, curtailed, _, _,
          clean_firm_gen, _, _) = simulate_system(
             solar_capacity=result['solar'],
             wind_capacity=result['wind'],
@@ -409,27 +407,50 @@ def generate_leap_chart(zone_data, zone='California', cost_settings=None):
             solar_profile=solar_profile,
             wind_profile=wind_profile,
             load_profile=load_profile,
-            battery_eff=0.85
+            battery_eff=0.85,
+            hybrid_mode=True
         )
+
+        # Find the week with maximum gas usage (peak stress week)
+        max_gas_per_week = []
+        for week in range(52):
+            week_start = week * 168
+            week_end = week_start + 168
+            max_gas_in_week = np.max(gas_gen[week_start:week_end])
+            total_gas_in_week = np.sum(gas_gen[week_start:week_end])
+            max_gas_per_week.append((week, max_gas_in_week, total_gas_in_week))
+
+        # Sort by max gas in week (descending) to find peak stress week
+        max_gas_per_week.sort(key=lambda x: x[1], reverse=True)
+        peak_week = max_gas_per_week[0][0]
+        week_start = peak_week * 168
+
+        print(f"    Peak gas week: {peak_week} (max gas: {max_gas_per_week[0][1]:.1f} MW)")
 
         # Extract week data
         week_data[target] = {
             'solar': solar_out[week_start:week_start+168],
             'wind': wind_out[week_start:week_start+168],
-            'storage': np.maximum(0, storage_out[week_start:week_start+168]),  # Discharge only
+            'battery_charge': battery_charge[week_start:week_start+168],
+            'battery_discharge': battery_discharge[week_start:week_start+168],
             'clean_firm': clean_firm_gen[week_start:week_start+168],
             'gas': gas_gen[week_start:week_start+168],
+            'curtailed': curtailed[week_start:week_start+168],
             'load': load_profile[week_start:week_start+168],
-            'result': result
+            'result': result,
+            'peak_week': peak_week,
+            'max_gas': max_gas_per_week[0][1]
         }
 
-    # Create subplot-style chart with two panels
+    hours_in_week = list(range(168))
+
+    # Create subplot-style chart with two panels using STACKED BARS
     chart = {
         'data': [],
         'layout': {
             **LAYOUT_DEFAULTS,
-            'grid': {'rows': 2, 'columns': 1, 'pattern': 'independent'},
-            'height': 500,
+            'barmode': 'stack',
+            'height': 600,
             'annotations': []
         }
     }
@@ -437,128 +458,163 @@ def generate_leap_chart(zone_data, zone='California', cost_settings=None):
     for i, target in enumerate(targets):
         data = week_data[target]
         yaxis = 'y' if i == 0 else 'y2'
-        row = i + 1
 
-        # Add stacked areas for this target - Clean Firm at bottom
+        # Calculate what portion of solar/wind goes to load vs charging
+        # Following the main app logic
+        total_renewable = data['solar'] + data['wind'] + data['clean_firm']
+        load_week = data['load']
+
+        # Clean firm serves load first
+        clean_firm_to_load = np.minimum(data['clean_firm'], load_week)
+        remaining_load = load_week - clean_firm_to_load
+
+        # Remaining renewable (solar + wind) serves remaining load
+        remaining_renewable = data['solar'] + data['wind']
+        direct_renewable = np.minimum(remaining_renewable, remaining_load)
+
+        # Split between solar and wind proportionally
+        total_gen = np.where(remaining_renewable > 0, remaining_renewable, 1)
+        solar_to_load = direct_renewable * (data['solar'] / total_gen)
+        wind_to_load = direct_renewable * (data['wind'] / total_gen)
+
+        # Battery discharge serves load (after efficiency)
+        battery_discharge_eff = data['battery_discharge'] * 0.85
+
+        # Add stacked BARS for this target
         chart['data'].extend([
             {
                 'x': hours_in_week,
-                'y': data['clean_firm'].tolist(),
-                'type': 'scatter',
-                'mode': 'lines',
+                'y': clean_firm_to_load.tolist(),
+                'type': 'bar',
                 'name': 'Clean Firm' if i == 0 else None,
-                'stackgroup': f'gen{target}',
-                'fillcolor': COLORS['clean_firm'],
-                'line': {'width': 0, 'color': COLORS['clean_firm']},
+                'marker': {'color': COLORS['clean_firm']},
                 'yaxis': yaxis,
                 'showlegend': i == 0,
-                'legendgroup': 'cleanfirm'
+                'legendgroup': 'cleanfirm',
+                'xaxis': 'x' if i == 0 else 'x2'
             },
             {
                 'x': hours_in_week,
-                'y': data['storage'].tolist(),
-                'type': 'scatter',
-                'mode': 'lines',
-                'name': 'Storage' if i == 0 else None,
-                'stackgroup': f'gen{target}',
-                'fillcolor': COLORS['storage'],
-                'line': {'width': 0, 'color': COLORS['storage']},
-                'yaxis': yaxis,
-                'showlegend': i == 0,
-                'legendgroup': 'storage'
-            },
-            {
-                'x': hours_in_week,
-                'y': data['wind'].tolist(),
-                'type': 'scatter',
-                'mode': 'lines',
-                'name': 'Wind' if i == 0 else None,
-                'stackgroup': f'gen{target}',
-                'fillcolor': COLORS['wind'],
-                'line': {'width': 0, 'color': COLORS['wind']},
-                'yaxis': yaxis,
-                'showlegend': i == 0,
-                'legendgroup': 'wind'
-            },
-            {
-                'x': hours_in_week,
-                'y': data['solar'].tolist(),
-                'type': 'scatter',
-                'mode': 'lines',
+                'y': solar_to_load.tolist(),
+                'type': 'bar',
                 'name': 'Solar' if i == 0 else None,
-                'stackgroup': f'gen{target}',
-                'fillcolor': COLORS['solar'],
-                'line': {'width': 0, 'color': COLORS['solar']},
+                'marker': {'color': COLORS['solar']},
                 'yaxis': yaxis,
                 'showlegend': i == 0,
-                'legendgroup': 'solar'
+                'legendgroup': 'solar',
+                'xaxis': 'x' if i == 0 else 'x2'
+            },
+            {
+                'x': hours_in_week,
+                'y': wind_to_load.tolist(),
+                'type': 'bar',
+                'name': 'Wind' if i == 0 else None,
+                'marker': {'color': COLORS['wind']},
+                'yaxis': yaxis,
+                'showlegend': i == 0,
+                'legendgroup': 'wind',
+                'xaxis': 'x' if i == 0 else 'x2'
+            },
+            {
+                'x': hours_in_week,
+                'y': battery_discharge_eff.tolist(),
+                'type': 'bar',
+                'name': 'Battery Discharge' if i == 0 else None,
+                'marker': {'color': '#34a853'},  # Green for discharge
+                'yaxis': yaxis,
+                'showlegend': i == 0,
+                'legendgroup': 'battery_discharge',
+                'xaxis': 'x' if i == 0 else 'x2'
+            },
+            {
+                'x': hours_in_week,
+                'y': data['battery_charge'].tolist(),
+                'type': 'bar',
+                'name': 'Battery Charging' if i == 0 else None,
+                'marker': {'color': COLORS['storage']},  # Purple for charging
+                'yaxis': yaxis,
+                'showlegend': i == 0,
+                'legendgroup': 'battery_charge',
+                'xaxis': 'x' if i == 0 else 'x2'
             },
             {
                 'x': hours_in_week,
                 'y': data['gas'].tolist(),
-                'type': 'scatter',
-                'mode': 'lines',
-                'name': 'Gas Backup' if i == 0 else None,
-                'stackgroup': f'gen{target}',
-                'fillcolor': COLORS['gas'],
-                'line': {'width': 0, 'color': COLORS['gas']},
+                'type': 'bar',
+                'name': 'Gas' if i == 0 else None,
+                'marker': {'color': COLORS['gas']},
                 'yaxis': yaxis,
                 'showlegend': i == 0,
-                'legendgroup': 'gas'
+                'legendgroup': 'gas',
+                'xaxis': 'x' if i == 0 else 'x2'
             },
+            {
+                'x': hours_in_week,
+                'y': data['curtailed'].tolist(),
+                'type': 'bar',
+                'name': 'Curtailed' if i == 0 else None,
+                'marker': {'color': '#000000'},
+                'yaxis': yaxis,
+                'showlegend': i == 0,
+                'legendgroup': 'curtailed',
+                'xaxis': 'x' if i == 0 else 'x2'
+            },
+            # Load line
             {
                 'x': hours_in_week,
                 'y': data['load'].tolist(),
                 'type': 'scatter',
                 'mode': 'lines',
                 'name': 'Load' if i == 0 else None,
-                'line': {'color': COLORS['load'], 'width': 2, 'dash': 'dot'},
+                'line': {'color': COLORS['load'], 'width': 2},
                 'yaxis': yaxis,
                 'showlegend': i == 0,
-                'legendgroup': 'load'
+                'legendgroup': 'load',
+                'xaxis': 'x' if i == 0 else 'x2'
             }
         ])
 
         # Add annotation for target label
         result = data['result']
+        week_label = "Winter" if data['peak_week'] < 13 or data['peak_week'] > 39 else "Summer"
         chart['layout']['annotations'].append({
             'x': 0.02,
             'y': 0.95 if i == 0 else 0.45,
             'xref': 'paper',
             'yref': 'paper',
-            'text': f"<b>{target}% Target</b><br>CF: {result['clean_firm']:.0f} MW | Gas fills {100-target}%",
+            'text': f"<b>{target}% Clean Target</b><br>Week {data['peak_week']+1} ({week_label}) - Max Gas: {data['max_gas']:.0f} MW",
             'showarrow': False,
-            'font': {'size': 12},
+            'font': {'size': 11},
             'align': 'left',
-            'bgcolor': 'rgba(255,255,255,0.8)',
+            'bgcolor': 'rgba(255,255,255,0.9)',
             'borderpad': 4
         })
 
-    # Configure axes
+    # Configure axes for two subplots
     chart['layout']['xaxis'] = {
         'title': '',
         'showgrid': False,
         'domain': [0, 1],
         'anchor': 'y',
-        'tickvals': [0, 24, 48, 72, 96, 120, 144, 168],
-        'ticktext': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', '']
+        'tickvals': [0, 24, 48, 72, 96, 120, 144],
+        'ticktext': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     }
     chart['layout']['xaxis2'] = {
-        'title': 'Day of Week (Winter)',
+        'title': 'Hour of Week',
         'showgrid': False,
         'domain': [0, 1],
         'anchor': 'y2',
-        'tickvals': [0, 24, 48, 72, 96, 120, 144, 168],
-        'ticktext': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', '']
+        'tickvals': [0, 24, 48, 72, 96, 120, 144],
+        'ticktext': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
     }
     chart['layout']['yaxis'] = {
-        'title': 'MW',
+        'title': 'Power (MW)',
         'showgrid': True,
         'gridcolor': 'rgba(0,0,0,0.1)',
         'domain': [0.55, 1]
     }
     chart['layout']['yaxis2'] = {
-        'title': 'MW',
+        'title': 'Power (MW)',
         'showgrid': True,
         'gridcolor': 'rgba(0,0,0,0.1)',
         'domain': [0, 0.45]
@@ -1099,8 +1155,8 @@ def generate_greedy_comparison(zone_data, zone='California', cost_settings=None)
 
 def generate_solar_paradox(zone_data, zone='California', cost_settings=None):
     """
-    Show the solar paradox: solar-only has a ceiling around 40% clean energy.
-    No amount of additional solar can push beyond this limit without other resources.
+    Show the solar paradox: solar-only has a ceiling around 50% clean energy.
+    Shows clean match plateauing while curtailment keeps rising.
     """
     print("Generating solar paradox chart...")
 
@@ -1114,7 +1170,7 @@ def generate_solar_paradox(zone_data, zone='California', cost_settings=None):
     # Sweep solar capacity and measure clean energy match (solar only, no storage)
     solar_capacities = list(range(0, 1001, 50))  # 0 to 1000 MW
     matches = []
-    lcoes = []
+    curtailments = []
 
     for solar_cap in solar_capacities:
         # Simulate solar-only (no wind, no storage, no clean firm)
@@ -1131,23 +1187,22 @@ def generate_solar_paradox(zone_data, zone='California', cost_settings=None):
         )
 
         annual_load = np.sum(load_profile)
+        total_solar_gen = np.sum(solar_out)
         match = (np.sum(renewable_delivered) / annual_load) * 100
         matches.append(match)
 
-        # Calculate LCOE
-        lcoe = calculate_lcoe(
-            cost_settings, solar_cap, 0, 0, 0,
-            np.sum(solar_out), 0, 0,
-            np.sum(gas_gen), np.max(gas_gen), np.sum(curtailed), annual_load
-        )
-        lcoes.append(lcoe)
+        # Calculate curtailment percentage (of total solar generation)
+        if total_solar_gen > 0:
+            curtailment_pct = (np.sum(curtailed) / total_solar_gen) * 100
+        else:
+            curtailment_pct = 0
+        curtailments.append(curtailment_pct)
 
         if solar_cap % 200 == 0:
-            print(f"  Solar {solar_cap} MW: {match:.1f}% clean, ${lcoe:.1f}/MWh")
+            print(f"  Solar {solar_cap} MW: {match:.1f}% clean, {curtailment_pct:.1f}% curtailed")
 
     # Find max clean match achievable with solar only
     max_match = max(matches)
-    max_match_idx = matches.index(max_match)
 
     chart = {
         'data': [
@@ -1163,11 +1218,11 @@ def generate_solar_paradox(zone_data, zone='California', cost_settings=None):
             },
             {
                 'x': solar_capacities,
-                'y': lcoes,
+                'y': curtailments,
                 'type': 'scatter',
                 'mode': 'lines+markers',
-                'name': 'System LCOE ($/MWh)',
-                'line': {'color': COLORS['baseline'], 'width': 2, 'dash': 'dot'},
+                'name': 'Curtailment (%)',
+                'line': {'color': COLORS['gas'], 'width': 2, 'dash': 'dot'},
                 'marker': {'size': 4},
                 'yaxis': 'y2'
             }
@@ -1189,12 +1244,13 @@ def generate_solar_paradox(zone_data, zone='California', cost_settings=None):
                 'range': [0, 100]
             },
             'yaxis2': {
-                'title': 'LCOE ($/MWh)',
-                'titlefont': {'color': COLORS['baseline']},
-                'tickfont': {'color': COLORS['baseline']},
+                'title': 'Curtailment (%)',
+                'titlefont': {'color': COLORS['gas']},
+                'tickfont': {'color': COLORS['gas']},
                 'showgrid': False,
                 'overlaying': 'y',
-                'side': 'right'
+                'side': 'right',
+                'range': [0, 100]
             },
             'shapes': [
                 # Horizontal line at max achievable match
@@ -1202,7 +1258,7 @@ def generate_solar_paradox(zone_data, zone='California', cost_settings=None):
                     'type': 'line',
                     'x0': 0, 'x1': 1000,
                     'y0': max_match, 'y1': max_match,
-                    'line': {'color': COLORS['gas'], 'width': 2, 'dash': 'dash'}
+                    'line': {'color': COLORS['solar'], 'width': 2, 'dash': 'dash'}
                 }
             ],
             'annotations': [
@@ -1211,17 +1267,404 @@ def generate_solar_paradox(zone_data, zone='California', cost_settings=None):
                     'y': max_match + 3,
                     'text': f'Solar ceiling: ~{max_match:.0f}%',
                     'showarrow': False,
-                    'font': {'size': 12, 'color': COLORS['gas'], 'weight': 'bold'}
+                    'font': {'size': 12, 'color': COLORS['solar'], 'weight': 'bold'}
                 },
                 {
                     'x': 800,
-                    'y': matches[-3],
-                    'text': 'More solar = more curtailment<br>but no higher match',
+                    'y': curtailments[-3],
+                    'yref': 'y2',
+                    'text': 'Curtailment keeps rising<br>while match plateaus',
                     'showarrow': True,
                     'arrowhead': 2,
                     'ax': -60,
                     'ay': -40,
                     'font': {'size': 10, 'color': '#666'}
+                }
+            ]
+        }
+    }
+
+    return chart
+
+
+def generate_solar_storage_ceiling(zone_data, zone='California', cost_settings=None):
+    """
+    Show how adding storage raises the solar ceiling.
+    Multiple lines for 0, 1, 2, 3, 4, 5 hours of storage.
+    Uses hybrid_mode for optimal battery dispatch.
+    """
+    print("Generating solar + storage ceiling chart...")
+
+    if cost_settings is None:
+        cost_settings = DEFAULT_COSTS.copy()
+
+    profiles = zone_data[zone]
+    solar_profile = profiles['solar']
+    load_profile = profiles['load']
+
+    # Get peak load to size storage in "hours"
+    peak_load = np.max(load_profile)
+
+    # Storage hours to test (MWh = hours * peak_load)
+    storage_hours_list = [0, 1, 2, 3, 4, 5]
+    solar_capacities = list(range(0, 1501, 50))  # 0 to 1500 MW
+
+    storage_colors = {
+        0: COLORS['solar'],
+        1: '#ff9800',  # orange
+        2: '#4caf50',  # green
+        3: '#2196f3',  # blue
+        4: '#9c27b0',  # purple
+        5: '#673ab7'   # deep purple
+    }
+
+    traces = []
+    ceilings = {}
+
+    for hours in storage_hours_list:
+        storage_mwh = hours * peak_load
+        matches = []
+
+        for solar_cap in solar_capacities:
+            (_, _, _, _, _, _, renewable_delivered, _, _, _, _) = simulate_system(
+                solar_capacity=solar_cap,
+                wind_capacity=0,
+                storage_capacity=storage_mwh,
+                clean_firm_capacity=0,
+                solar_profile=solar_profile,
+                wind_profile=profiles['wind'],
+                load_profile=load_profile,
+                battery_eff=0.85,
+                hybrid_mode=True  # Use hybrid mode for better battery dispatch
+            )
+
+            match = (np.sum(renewable_delivered) / np.sum(load_profile)) * 100
+            matches.append(match)
+
+        ceiling = max(matches)
+        ceilings[hours] = ceiling
+        print(f"  Solar + {hours}h storage ({storage_mwh:.0f} MWh): ceiling = {ceiling:.1f}%")
+
+        traces.append({
+            'x': solar_capacities,
+            'y': matches,
+            'type': 'scatter',
+            'mode': 'lines',
+            'name': f'Solar + {hours}h storage' if hours > 0 else 'Solar only',
+            'line': {'color': storage_colors[hours], 'width': 2 if hours > 0 else 3}
+        })
+
+    chart = {
+        'data': traces,
+        'layout': {
+            **LAYOUT_DEFAULTS,
+            'xaxis': {
+                'title': 'Solar Capacity (MW)',
+                'showgrid': True,
+                'gridcolor': 'rgba(0,0,0,0.1)'
+            },
+            'yaxis': {
+                'title': 'Clean Energy Match (%)',
+                'showgrid': True,
+                'gridcolor': 'rgba(0,0,0,0.1)',
+                'range': [0, 100]
+            },
+            'annotations': [
+                {
+                    'x': 1400,
+                    'y': ceilings[0] + 2,
+                    'text': f'No storage: {ceilings[0]:.0f}%',
+                    'showarrow': False,
+                    'font': {'size': 10, 'color': storage_colors[0]}
+                },
+                {
+                    'x': 1400,
+                    'y': ceilings[5] + 2,
+                    'text': f'5h storage: {ceilings[5]:.0f}%',
+                    'showarrow': False,
+                    'font': {'size': 10, 'color': storage_colors[5]}
+                }
+            ]
+        }
+    }
+
+    return chart
+
+
+def generate_wind_storage_ceiling(zone_data, zone='California', cost_settings=None):
+    """
+    Show how adding storage raises the wind ceiling.
+    Multiple lines for 0, 1, 2, 3, 4, 5 hours of storage.
+    Uses hybrid_mode for optimal battery dispatch.
+    """
+    print("Generating wind + storage ceiling chart...")
+
+    if cost_settings is None:
+        cost_settings = DEFAULT_COSTS.copy()
+
+    profiles = zone_data[zone]
+    wind_profile = profiles['wind']
+    load_profile = profiles['load']
+
+    # Get peak load to size storage in "hours"
+    peak_load = np.max(load_profile)
+
+    # Storage hours to test (MWh = hours * peak_load)
+    storage_hours_list = [0, 1, 2, 3, 4, 5]
+    wind_capacities = list(range(0, 1001, 50))  # 0 to 1000 MW
+
+    storage_colors = {
+        0: COLORS['wind'],
+        1: '#29b6f6',  # light blue
+        2: '#4caf50',  # green
+        3: '#ff9800',  # orange
+        4: '#9c27b0',  # purple
+        5: '#673ab7'   # deep purple
+    }
+
+    traces = []
+    ceilings = {}
+
+    for hours in storage_hours_list:
+        storage_mwh = hours * peak_load
+        matches = []
+
+        for wind_cap in wind_capacities:
+            (_, _, _, _, _, _, renewable_delivered, _, _, _, _) = simulate_system(
+                solar_capacity=0,
+                wind_capacity=wind_cap,
+                storage_capacity=storage_mwh,
+                clean_firm_capacity=0,
+                solar_profile=profiles['solar'],
+                wind_profile=wind_profile,
+                load_profile=load_profile,
+                battery_eff=0.85,
+                hybrid_mode=True  # Use hybrid mode for better battery dispatch
+            )
+
+            match = (np.sum(renewable_delivered) / np.sum(load_profile)) * 100
+            matches.append(match)
+
+        ceiling = max(matches)
+        ceilings[hours] = ceiling
+        print(f"  Wind + {hours}h storage ({storage_mwh:.0f} MWh): ceiling = {ceiling:.1f}%")
+
+        traces.append({
+            'x': wind_capacities,
+            'y': matches,
+            'type': 'scatter',
+            'mode': 'lines',
+            'name': f'Wind + {hours}h storage' if hours > 0 else 'Wind only',
+            'line': {'color': storage_colors[hours], 'width': 2 if hours > 0 else 3}
+        })
+
+    chart = {
+        'data': traces,
+        'layout': {
+            **LAYOUT_DEFAULTS,
+            'xaxis': {
+                'title': 'Wind Capacity (MW)',
+                'showgrid': True,
+                'gridcolor': 'rgba(0,0,0,0.1)'
+            },
+            'yaxis': {
+                'title': 'Clean Energy Match (%)',
+                'showgrid': True,
+                'gridcolor': 'rgba(0,0,0,0.1)',
+                'range': [0, 100]
+            },
+            'annotations': [
+                {
+                    'x': 900,
+                    'y': ceilings[0] + 2,
+                    'text': f'No storage: {ceilings[0]:.0f}%',
+                    'showarrow': False,
+                    'font': {'size': 10, 'color': storage_colors[0]}
+                },
+                {
+                    'x': 900,
+                    'y': ceilings[5] + 2,
+                    'text': f'5h storage: {ceilings[5]:.0f}%',
+                    'showarrow': False,
+                    'font': {'size': 10, 'color': storage_colors[5]}
+                }
+            ]
+        }
+    }
+
+    return chart
+
+
+def generate_solar_storage_lcoe(zone_data, zone='California', cost_settings=None):
+    """
+    Full 0-100% clean energy sweep showing:
+    - Total system LCOE
+    - Gas contribution to LCOE (starts high, drops dramatically)
+    - Gas capacity required (stays high but utilization drops)
+
+    Key insight: You need gas capacity for reliability, but it contributes
+    little to LCOE at high clean percentages because it runs so few hours.
+    """
+    print("Generating gas contribution sweep (0-100% clean)...")
+
+    if cost_settings is None:
+        cost_settings = DEFAULT_COSTS.copy()
+
+    profiles = zone_data[zone]
+    load_profile = profiles['load']
+    annual_load = np.sum(load_profile)
+    peak_load = np.max(load_profile)
+
+    # Full sweep from 0 to 99%
+    targets = list(range(0, 100, 5)) + [95, 99]
+    targets = sorted(set(targets))
+
+    results = []
+
+    for target in targets:
+        print(f"  Optimizing for {target}% clean...")
+
+        # Use V4 optimizer if available, otherwise fall back to grid search
+        if HAS_V4:
+            result = run_min_lcoe_v4_adaptive(
+                clean_match_target=target,
+                zone_data={zone: profiles},
+                selected_zone=zone,
+                cost_settings=cost_settings,
+                use_solar=True,
+                use_wind=True,
+                use_storage=True,
+                use_clean_firm=True,
+                hybrid_mode=True
+            )
+        else:
+            result = run_optimization(zone_data, zone, target, cost_settings)
+
+        # Run simulation to get detailed results
+        (solar_out, wind_out, _, batt_discharge, gas_gen, curtailed,
+         renewable_delivered, _, _, _, _) = simulate_system(
+            solar_capacity=result['solar'],
+            wind_capacity=result['wind'],
+            storage_capacity=result['storage'],
+            clean_firm_capacity=result['clean_firm'],
+            solar_profile=profiles['solar'],
+            wind_profile=profiles['wind'],
+            load_profile=load_profile,
+            battery_eff=0.85,
+            hybrid_mode=True
+        )
+
+        gas_cap = np.max(gas_gen)
+        gas_mwh = np.sum(gas_gen)
+        gas_cf = gas_mwh / (gas_cap * 8760) * 100 if gas_cap > 0 else 0
+
+        # Calculate gas LCOE contribution
+        gas_capex = cost_settings.get('gas_capex', 1200)
+        gas_price = cost_settings.get('gas_price', 4)
+        heat_rate = cost_settings.get('gas_heat_rate', 7.5)
+
+        # Gas cost = capex amortized + fuel
+        gas_annual_cost = gas_cap * gas_capex * 0.08  # ~8% CRF
+        gas_fuel_cost = gas_mwh * gas_price * heat_rate / 1000
+        gas_total_cost = gas_annual_cost + gas_fuel_cost
+        gas_lcoe_contribution = gas_total_cost / annual_load * 1000  # $/MWh
+
+        actual_match = (np.sum(renewable_delivered) / annual_load) * 100
+
+        results.append({
+            'target': target,
+            'actual_match': actual_match,
+            'total_lcoe': result['lcoe'],
+            'gas_lcoe_contribution': gas_lcoe_contribution,
+            'gas_capacity': gas_cap,
+            'gas_cf': gas_cf,
+            'gas_energy_pct': (gas_mwh / annual_load) * 100
+        })
+
+        print(f"    {target}%: LCOE=${result['lcoe']:.1f}, Gas contributes ${gas_lcoe_contribution:.1f}/MWh, Gas cap={gas_cap:.0f}MW ({gas_cf:.1f}% CF)")
+
+    # Extract data for plotting
+    targets_plot = [r['target'] for r in results]
+    total_lcoes = [r['total_lcoe'] for r in results]
+    gas_contributions = [r['gas_lcoe_contribution'] for r in results]
+    gas_capacities = [r['gas_capacity'] for r in results]
+    gas_cfs = [r['gas_cf'] for r in results]
+
+    chart = {
+        'data': [
+            {
+                'x': targets_plot,
+                'y': total_lcoes,
+                'type': 'scatter',
+                'mode': 'lines+markers',
+                'name': 'Total System LCOE',
+                'line': {'color': '#202124', 'width': 3},
+                'marker': {'size': 6}
+            },
+            {
+                'x': targets_plot,
+                'y': gas_contributions,
+                'type': 'scatter',
+                'mode': 'lines+markers',
+                'name': 'Gas Contribution to LCOE',
+                'line': {'color': COLORS['gas'], 'width': 3},
+                'marker': {'size': 6},
+                'fill': 'tozeroy',
+                'fillcolor': 'rgba(234, 67, 53, 0.2)'
+            },
+            {
+                'x': targets_plot,
+                'y': gas_capacities,
+                'type': 'scatter',
+                'mode': 'lines+markers',
+                'name': 'Gas Capacity (MW)',
+                'line': {'color': COLORS['gas'], 'width': 2, 'dash': 'dot'},
+                'marker': {'size': 4},
+                'yaxis': 'y2'
+            }
+        ],
+        'layout': {
+            **LAYOUT_DEFAULTS,
+            'xaxis': {
+                'title': 'Clean Energy Target (%)',
+                'showgrid': True,
+                'gridcolor': 'rgba(0,0,0,0.1)',
+                'range': [0, 100]
+            },
+            'yaxis': {
+                'title': 'LCOE ($/MWh)',
+                'showgrid': True,
+                'gridcolor': 'rgba(0,0,0,0.1)',
+                'side': 'left'
+            },
+            'yaxis2': {
+                'title': 'Gas Capacity (MW)',
+                'titlefont': {'color': COLORS['gas']},
+                'tickfont': {'color': COLORS['gas']},
+                'showgrid': False,
+                'overlaying': 'y',
+                'side': 'right'
+            },
+            'annotations': [
+                {
+                    'x': 20,
+                    'y': gas_contributions[targets_plot.index(20)] if 20 in targets_plot else gas_contributions[4],
+                    'text': 'Gas dominates<br>at low clean %',
+                    'showarrow': True,
+                    'arrowhead': 2,
+                    'ax': 40,
+                    'ay': -30,
+                    'font': {'size': 10}
+                },
+                {
+                    'x': 90,
+                    'y': gas_contributions[-3] if len(gas_contributions) > 3 else gas_contributions[-1],
+                    'text': 'Gas < $10/MWh<br>but capacity still needed',
+                    'showarrow': True,
+                    'arrowhead': 2,
+                    'ax': -50,
+                    'ay': 30,
+                    'font': {'size': 10}
                 }
             ]
         }
@@ -2766,7 +3209,12 @@ def main():
         'marginal_energy': generate_marginal_energy_value(zone_data, cost_settings=cost_settings),
         'elcc_storage': generate_elcc_with_storage(zone_data, cost_settings=cost_settings),
         'lcoe_breakdown': generate_lcoe_breakdown(zone_data, cost_settings=cost_settings),
-        'effective_lcoe': generate_effective_lcoe(zone_data, cost_settings=cost_settings)
+        'effective_lcoe': generate_effective_lcoe(zone_data, cost_settings=cost_settings),
+        # Storage ceiling charts
+        'solar_storage_ceiling': generate_solar_storage_ceiling(zone_data, cost_settings=cost_settings),
+        'wind_storage_ceiling': generate_wind_storage_ceiling(zone_data, cost_settings=cost_settings),
+        # Solar+storage only LCOE sweep
+        'solar_storage_lcoe': generate_solar_storage_lcoe(zone_data, cost_settings=cost_settings)
     }
 
     # Save each chart
