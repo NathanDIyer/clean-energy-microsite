@@ -190,6 +190,21 @@
           "size": 11,
           "color": "#333"
         }
+      },
+      {
+        "x": 8,
+        "y": 60,
+        "xanchor": "left",
+        "text": "$8/MMBtu gas \u2248 $75/ton carbon price<br>(vs $4/MMBtu baseline)",
+        "showarrow": false,
+        "font": {
+          "size": 10,
+          "color": "#666"
+        },
+        "bgcolor": "rgba(255,255,255,0.8)",
+        "bordercolor": "#ccc",
+        "borderwidth": 1,
+        "borderpad": 4
       }
     ]
   }

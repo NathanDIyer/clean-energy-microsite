@@ -1516,15 +1516,15 @@ def generate_solar_storage_lcoe(zone_data, zone='California', cost_settings=None
     annual_load = np.sum(load_profile)
     peak_load = np.max(load_profile)
 
-    # Storage hours to test
-    storage_hours_list = [1, 2, 3, 4, 5]
+    # Storage hours to test - spread out for visual clarity
+    storage_hours_list = [1, 2, 4, 6, 8]
 
     storage_colors = {
         1: '#ff9800',  # orange
         2: '#4caf50',  # green
-        3: '#2196f3',  # blue
-        4: '#9c27b0',  # purple
-        5: '#673ab7'   # deep purple
+        4: '#2196f3',  # blue
+        6: '#9c27b0',  # purple
+        8: '#673ab7'   # deep purple
     }
 
     traces = []
@@ -1626,28 +1626,28 @@ def generate_solar_storage_lcoe(zone_data, zone='California', cost_settings=None
                 'title': 'System LCOE ($/MWh)',
                 'showgrid': True,
                 'gridcolor': 'rgba(0,0,0,0.1)',
-                'range': [50, 300]
+                'range': [50, 400]
             },
             'shapes': shapes,
             'annotations': [
                 {
-                    'x': 50,
-                    'y': 80,
-                    'text': 'Solar alone hits<br>ceiling at ~50%',
+                    'x': 55,
+                    'y': 100,
+                    'text': '1h storage<br>ceiling ~55%',
                     'showarrow': True,
                     'arrowhead': 2,
-                    'ax': -50,
-                    'ay': -30,
+                    'ax': -40,
+                    'ay': -40,
                     'font': {'size': 10}
                 },
                 {
-                    'x': 80,
+                    'x': 90,
                     'y': 200,
-                    'text': 'Cost explodes<br>beyond ceiling',
+                    'text': 'Cost explodes<br>at higher targets',
                     'showarrow': True,
                     'arrowhead': 2,
-                    'ax': 30,
-                    'ay': -20,
+                    'ax': -30,
+                    'ay': -30,
                     'font': {'size': 10}
                 }
             ]
@@ -1935,6 +1935,18 @@ def generate_gas_crossover(zone_data, zone='California'):
                     'ax': 40,
                     'ay': -30,
                     'font': {'size': 11, 'color': '#333'}
+                },
+                {
+                    'x': 8,
+                    'y': 60,
+                    'xanchor': 'left',
+                    'text': '$8/MMBtu gas ≈ $75/ton carbon price<br>(vs $4/MMBtu baseline)',
+                    'showarrow': False,
+                    'font': {'size': 10, 'color': '#666'},
+                    'bgcolor': 'rgba(255,255,255,0.8)',
+                    'bordercolor': '#ccc',
+                    'borderwidth': 1,
+                    'borderpad': 4
                 }
             ]
         }
@@ -2404,13 +2416,12 @@ def generate_marginal_energy_value(zone_data, zone='California', cost_settings=N
     return chart
 
 
-def generate_elcc_with_storage(zone_data, zone='California', cost_settings=None):
+def generate_elcc_solar_storage(zone_data, zone='California', cost_settings=None):
     """
-    Show ELCC (capacity value) with storage interactions.
-    Key insight: Solar+storage has much higher capacity value than solar alone.
+    Show ELCC (capacity credit) for solar with different storage durations (1-8h).
     Uses hybrid battery mode for proper peak shaving.
     """
-    print("Generating ELCC with storage interactions...")
+    print("Generating solar+storage ELCC chart...")
 
     if cost_settings is None:
         cost_settings = DEFAULT_COSTS.copy()
@@ -2422,93 +2433,66 @@ def generate_elcc_with_storage(zone_data, zone='California', cost_settings=None)
     peak_load = np.max(load_profile)
 
     def get_peak_gas_needed(solar, wind, storage, cf):
-        """Returns peak gas generation needed (lower = higher capacity value)"""
         (_, _, _, _, gas_gen, _, _, _, _, _, _) = simulate_system(
             solar_capacity=solar, wind_capacity=wind,
             storage_capacity=storage, clean_firm_capacity=cf,
             solar_profile=solar_profile, wind_profile=wind_profile,
             load_profile=load_profile, battery_eff=0.85,
-            hybrid_mode=True  # Critical for peak shaving
+            hybrid_mode=True
         )
         return np.max(gas_gen)
 
-    def capacity_credit(solar, wind, storage, cf):
-        """Capacity credit = how much gas capacity is displaced"""
-        baseline_gas = get_peak_gas_needed(0, 0, 0, 0)  # ~peak load
-        with_resource = get_peak_gas_needed(solar, wind, storage, cf)
+    baseline_gas = get_peak_gas_needed(0, 0, 0, 0)
+
+    def capacity_credit(solar, storage):
+        with_resource = get_peak_gas_needed(solar, 0, storage, 0)
         return (baseline_gas - with_resource) / baseline_gas * 100
 
-    step = 50
-    solar_caps = list(range(0, 601, step))
+    storage_hours = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    solar_caps = list(range(0, 501, 50))
 
-    # Scenario 1: Solar alone
-    solar_only_cc = [capacity_credit(s, 0, 0, 0) for s in solar_caps]
-    print(f"  Solar only CC: {solar_only_cc[0]:.1f}% -> {solar_only_cc[-1]:.1f}%")
+    storage_colors = {
+        0: COLORS['solar'],
+        1: '#ffb74d',
+        2: '#ff9800',
+        3: '#f57c00',
+        4: '#4caf50',
+        5: '#2196f3',
+        6: '#3f51b5',
+        7: '#7c4dff',
+        8: '#673ab7'
+    }
 
-    # Scenario 2: Solar + 2hr storage (200 MWh for 100MW system)
-    solar_2hr_cc = [capacity_credit(s, 0, 200, 0) for s in solar_caps]
-    print(f"  Solar + 2hr storage CC: {solar_2hr_cc[0]:.1f}% -> {solar_2hr_cc[-1]:.1f}%")
+    traces = []
 
-    # Scenario 3: Solar + 4hr storage (400 MWh)
-    solar_4hr_cc = [capacity_credit(s, 0, 400, 0) for s in solar_caps]
-    print(f"  Solar + 4hr storage CC: {solar_4hr_cc[0]:.1f}% -> {solar_4hr_cc[-1]:.1f}%")
+    for hours in storage_hours:
+        storage_mwh = hours * peak_load
+        cc_values = [capacity_credit(s, storage_mwh) for s in solar_caps]
 
-    # Scenario 4: Wind alone
-    wind_caps = list(range(0, 401, step))
-    wind_only_cc = [capacity_credit(0, w, 0, 0) for w in wind_caps]
-    print(f"  Wind only CC: {wind_only_cc[0]:.1f}% -> {wind_only_cc[-1]:.1f}%")
+        if hours == 0:
+            print(f"  Solar only: {cc_values[0]:.1f}% -> {cc_values[-1]:.1f}%")
+        else:
+            print(f"  Solar + {hours}h storage: {cc_values[0]:.1f}% -> {cc_values[-1]:.1f}%")
 
-    # Scenario 5: Wind + 4hr storage
-    wind_4hr_cc = [capacity_credit(0, w, 400, 0) for w in wind_caps]
-    print(f"  Wind + 4hr storage CC: {wind_4hr_cc[0]:.1f}% -> {wind_4hr_cc[-1]:.1f}%")
+        traces.append({
+            'x': solar_caps,
+            'y': cc_values,
+            'type': 'scatter',
+            'mode': 'lines',
+            'name': f'{hours}h storage' if hours > 0 else 'Solar only',
+            'line': {
+                'color': storage_colors[hours],
+                'width': 3 if hours == 0 else 2,
+                'dash': 'dot' if hours == 0 else 'solid'
+            }
+        })
 
     chart = {
-        'data': [
-            {
-                'x': solar_caps,
-                'y': solar_only_cc,
-                'type': 'scatter',
-                'mode': 'lines',
-                'name': 'Solar Only',
-                'line': {'color': COLORS['solar'], 'width': 2, 'dash': 'dot'}
-            },
-            {
-                'x': solar_caps,
-                'y': solar_2hr_cc,
-                'type': 'scatter',
-                'mode': 'lines',
-                'name': 'Solar + 2hr Storage',
-                'line': {'color': COLORS['solar'], 'width': 2}
-            },
-            {
-                'x': solar_caps,
-                'y': solar_4hr_cc,
-                'type': 'scatter',
-                'mode': 'lines',
-                'name': 'Solar + 4hr Storage',
-                'line': {'color': COLORS['solar'], 'width': 3}
-            },
-            {
-                'x': wind_caps,
-                'y': wind_only_cc,
-                'type': 'scatter',
-                'mode': 'lines',
-                'name': 'Wind Only',
-                'line': {'color': COLORS['wind'], 'width': 2, 'dash': 'dot'}
-            },
-            {
-                'x': wind_caps,
-                'y': wind_4hr_cc,
-                'type': 'scatter',
-                'mode': 'lines',
-                'name': 'Wind + 4hr Storage',
-                'line': {'color': COLORS['wind'], 'width': 3}
-            }
-        ],
+        'data': traces,
         'layout': {
             **LAYOUT_DEFAULTS,
             'xaxis': {
-                'title': 'Renewable Capacity (MW)',
+                'title': 'Solar Capacity (MW)',
                 'showgrid': True,
                 'gridcolor': 'rgba(0,0,0,0.1)'
             },
@@ -2516,34 +2500,109 @@ def generate_elcc_with_storage(zone_data, zone='California', cost_settings=None)
                 'title': 'Capacity Credit (% of peak load displaced)',
                 'showgrid': True,
                 'gridcolor': 'rgba(0,0,0,0.1)',
-                'range': [0, 100]
-            },
-            'annotations': [
-                {
-                    'x': 400,
-                    'y': solar_4hr_cc[8] if len(solar_4hr_cc) > 8 else 50,
-                    'text': 'Storage boosts<br>solar capacity value',
-                    'showarrow': True,
-                    'arrowhead': 2,
-                    'ax': 50,
-                    'ay': -30,
-                    'font': {'size': 10, 'color': COLORS['storage']}
-                },
-                {
-                    'x': 300,
-                    'y': wind_4hr_cc[6] if len(wind_4hr_cc) > 6 else 40,
-                    'text': 'Wind+storage:<br>less improvement',
-                    'showarrow': True,
-                    'arrowhead': 2,
-                    'ax': -50,
-                    'ay': 30,
-                    'font': {'size': 10, 'color': COLORS['wind']}
-                }
-            ]
+                'range': [0, 80]
+            }
         }
     }
 
     return chart
+
+
+def generate_elcc_wind_storage(zone_data, zone='California', cost_settings=None):
+    """
+    Show ELCC (capacity credit) for wind with different storage durations (1-8h).
+    Uses hybrid battery mode for proper peak shaving.
+    """
+    print("Generating wind+storage ELCC chart...")
+
+    if cost_settings is None:
+        cost_settings = DEFAULT_COSTS.copy()
+
+    profiles = zone_data[zone]
+    solar_profile = profiles['solar']
+    wind_profile = profiles['wind']
+    load_profile = profiles['load']
+    peak_load = np.max(load_profile)
+
+    def get_peak_gas_needed(solar, wind, storage, cf):
+        (_, _, _, _, gas_gen, _, _, _, _, _, _) = simulate_system(
+            solar_capacity=solar, wind_capacity=wind,
+            storage_capacity=storage, clean_firm_capacity=cf,
+            solar_profile=solar_profile, wind_profile=wind_profile,
+            load_profile=load_profile, battery_eff=0.85,
+            hybrid_mode=True
+        )
+        return np.max(gas_gen)
+
+    baseline_gas = get_peak_gas_needed(0, 0, 0, 0)
+
+    def capacity_credit(wind, storage):
+        with_resource = get_peak_gas_needed(0, wind, storage, 0)
+        return (baseline_gas - with_resource) / baseline_gas * 100
+
+    storage_hours = [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    wind_caps = list(range(0, 401, 50))
+
+    storage_colors = {
+        0: COLORS['wind'],
+        1: '#64b5f6',
+        2: '#42a5f5',
+        3: '#2196f3',
+        4: '#4caf50',
+        5: '#ff9800',
+        6: '#f57c00',
+        7: '#9c27b0',
+        8: '#673ab7'
+    }
+
+    traces = []
+
+    for hours in storage_hours:
+        storage_mwh = hours * peak_load
+        cc_values = [capacity_credit(w, storage_mwh) for w in wind_caps]
+
+        if hours == 0:
+            print(f"  Wind only: {cc_values[0]:.1f}% -> {cc_values[-1]:.1f}%")
+        else:
+            print(f"  Wind + {hours}h storage: {cc_values[0]:.1f}% -> {cc_values[-1]:.1f}%")
+
+        traces.append({
+            'x': wind_caps,
+            'y': cc_values,
+            'type': 'scatter',
+            'mode': 'lines',
+            'name': f'{hours}h storage' if hours > 0 else 'Wind only',
+            'line': {
+                'color': storage_colors[hours],
+                'width': 3 if hours == 0 else 2,
+                'dash': 'dot' if hours == 0 else 'solid'
+            }
+        })
+
+    chart = {
+        'data': traces,
+        'layout': {
+            **LAYOUT_DEFAULTS,
+            'xaxis': {
+                'title': 'Wind Capacity (MW)',
+                'showgrid': True,
+                'gridcolor': 'rgba(0,0,0,0.1)'
+            },
+            'yaxis': {
+                'title': 'Capacity Credit (% of peak load displaced)',
+                'showgrid': True,
+                'gridcolor': 'rgba(0,0,0,0.1)',
+                'range': [0, 80]
+            }
+        }
+    }
+
+    return chart
+
+
+def generate_elcc_with_storage(zone_data, zone='California', cost_settings=None):
+    """Legacy function - returns solar ELCC chart for backwards compatibility."""
+    return generate_elcc_solar_storage(zone_data, zone, cost_settings)
 
 
 def generate_lcoe_breakdown(zone_data, zone='California', cost_settings=None):
@@ -3191,7 +3250,8 @@ def main():
         # New narrative charts
         'tech_lcoe': generate_tech_lcoe_comparison(zone_data, cost_settings=cost_settings),
         'marginal_energy': generate_marginal_energy_value(zone_data, cost_settings=cost_settings),
-        'elcc_storage': generate_elcc_with_storage(zone_data, cost_settings=cost_settings),
+        'elcc_solar_storage': generate_elcc_solar_storage(zone_data, cost_settings=cost_settings),
+        'elcc_wind_storage': generate_elcc_wind_storage(zone_data, cost_settings=cost_settings),
         'lcoe_breakdown': generate_lcoe_breakdown(zone_data, cost_settings=cost_settings),
         'effective_lcoe': generate_effective_lcoe(zone_data, cost_settings=cost_settings),
         # Storage ceiling charts

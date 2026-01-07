@@ -20,7 +20,8 @@ const CHARTS = {
 
     // Part 3: The Capacity Problem
     'chart-elcc': 'elcc.json',
-    'chart-elcc-storage': 'elcc_storage.json',
+    'chart-elcc-solar-storage': 'elcc_solar_storage.json',
+    'chart-elcc-wind-storage': 'elcc_wind_storage.json',
 
     // Part 4: The Solution
     'chart-resource-mix': 'resource_mix.json',
