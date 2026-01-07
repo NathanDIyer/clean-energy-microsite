@@ -1497,173 +1497,157 @@ def generate_wind_storage_ceiling(zone_data, zone='California', cost_settings=No
 
 def generate_solar_storage_lcoe(zone_data, zone='California', cost_settings=None):
     """
-    Full 0-100% clean energy sweep showing:
-    - Total system LCOE
-    - Gas contribution to LCOE (starts high, drops dramatically)
-    - Gas capacity required (stays high but utilization drops)
+    Show LCOE curves for solar+storage only systems at different storage durations.
+    X-axis: Clean energy % (0-95%)
+    Y-axis: System LCOE
+    Multiple lines for 1h, 2h, 3h, 4h, 5h storage
 
-    Key insight: You need gas capacity for reliability, but it contributes
-    little to LCOE at high clean percentages because it runs so few hours.
+    Shows inflection points where massive overbuild + storage is needed.
     """
-    print("Generating gas contribution sweep (0-100% clean)...")
+    print("Generating solar+storage LCOE curves by storage hours...")
 
     if cost_settings is None:
         cost_settings = DEFAULT_COSTS.copy()
 
     profiles = zone_data[zone]
+    solar_profile = profiles['solar']
+    wind_profile = profiles['wind']
     load_profile = profiles['load']
     annual_load = np.sum(load_profile)
     peak_load = np.max(load_profile)
 
-    # Full sweep from 0 to 99%
-    targets = list(range(0, 100, 5)) + [95, 99]
-    targets = sorted(set(targets))
+    # Storage hours to test
+    storage_hours_list = [1, 2, 3, 4, 5]
 
-    results = []
+    storage_colors = {
+        1: '#ff9800',  # orange
+        2: '#4caf50',  # green
+        3: '#2196f3',  # blue
+        4: '#9c27b0',  # purple
+        5: '#673ab7'   # deep purple
+    }
 
-    for target in targets:
-        print(f"  Optimizing for {target}% clean...")
+    traces = []
+    all_results = {}
 
-        # Use V4 optimizer if available, otherwise fall back to grid search
-        if HAS_V4:
-            result = run_min_lcoe_v4_adaptive(
-                clean_match_target=target,
-                zone_data={zone: profiles},
-                selected_zone=zone,
-                cost_settings=cost_settings,
-                use_solar=True,
-                use_wind=True,
-                use_storage=True,
-                use_clean_firm=True,
-                hybrid_mode=True
-            )
-        else:
-            result = run_optimization(zone_data, zone, target, cost_settings)
+    for hours in storage_hours_list:
+        storage_mwh = hours * peak_load
+        print(f"  Testing {hours}h storage ({storage_mwh:.0f} MWh)...")
 
-        # Run simulation to get detailed results
-        (solar_out, wind_out, _, batt_discharge, gas_gen, curtailed,
-         renewable_delivered, _, _, _, _) = simulate_system(
-            solar_capacity=result['solar'],
-            wind_capacity=result['wind'],
-            storage_capacity=result['storage'],
-            clean_firm_capacity=result['clean_firm'],
-            solar_profile=profiles['solar'],
-            wind_profile=profiles['wind'],
-            load_profile=load_profile,
-            battery_eff=0.85,
-            hybrid_mode=True
-        )
+        # For each storage level, find min LCOE configs at different clean %
+        results = []
 
-        gas_cap = np.max(gas_gen)
-        gas_mwh = np.sum(gas_gen)
-        gas_cf = gas_mwh / (gas_cap * 8760) * 100 if gas_cap > 0 else 0
+        # Target clean percentages - find what's achievable
+        for target_pct in range(10, 96, 5):
+            best_lcoe = float('inf')
+            best_match = 0
 
-        # Calculate gas LCOE contribution
-        gas_capex = cost_settings.get('gas_capex', 1200)
-        gas_price = cost_settings.get('gas_price', 4)
-        heat_rate = cost_settings.get('gas_heat_rate', 7.5)
+            # Search over solar capacities to find min LCOE that achieves target
+            for solar_cap in range(50, 3001, 50):
+                (solar_out, _, _, batt_discharge, gas_gen, curtailed,
+                 renewable_delivered, _, _, _, _) = simulate_system(
+                    solar_capacity=solar_cap,
+                    wind_capacity=0,
+                    storage_capacity=storage_mwh,
+                    clean_firm_capacity=0,
+                    solar_profile=solar_profile,
+                    wind_profile=wind_profile,
+                    load_profile=load_profile,
+                    battery_eff=0.85,
+                    hybrid_mode=True
+                )
 
-        # Gas cost = capex amortized + fuel
-        gas_annual_cost = gas_cap * gas_capex * 0.08  # ~8% CRF
-        gas_fuel_cost = gas_mwh * gas_price * heat_rate / 1000
-        gas_total_cost = gas_annual_cost + gas_fuel_cost
-        gas_lcoe_contribution = gas_total_cost / annual_load * 1000  # $/MWh
+                match = (np.sum(renewable_delivered) / annual_load) * 100
 
-        actual_match = (np.sum(renewable_delivered) / annual_load) * 100
+                if match >= target_pct - 1:  # Close enough to target
+                    lcoe = calculate_lcoe(
+                        cost_settings, solar_cap, 0, storage_mwh, 0,
+                        np.sum(solar_out), 0, np.sum(batt_discharge),
+                        np.sum(gas_gen), np.max(gas_gen), np.sum(curtailed), annual_load
+                    )
 
-        results.append({
-            'target': target,
-            'actual_match': actual_match,
-            'total_lcoe': result['lcoe'],
-            'gas_lcoe_contribution': gas_lcoe_contribution,
-            'gas_capacity': gas_cap,
-            'gas_cf': gas_cf,
-            'gas_energy_pct': (gas_mwh / annual_load) * 100
-        })
+                    if lcoe < best_lcoe:
+                        best_lcoe = lcoe
+                        best_match = match
 
-        print(f"    {target}%: LCOE=${result['lcoe']:.1f}, Gas contributes ${gas_lcoe_contribution:.1f}/MWh, Gas cap={gas_cap:.0f}MW ({gas_cf:.1f}% CF)")
+                    break  # Found min solar to achieve this target
 
-    # Extract data for plotting
-    targets_plot = [r['target'] for r in results]
-    total_lcoes = [r['total_lcoe'] for r in results]
-    gas_contributions = [r['gas_lcoe_contribution'] for r in results]
-    gas_capacities = [r['gas_capacity'] for r in results]
-    gas_cfs = [r['gas_cf'] for r in results]
+            if best_lcoe < float('inf'):
+                results.append({'match': best_match, 'lcoe': best_lcoe})
+
+        all_results[hours] = results
+
+        # Create trace
+        if results:
+            matches = [r['match'] for r in results]
+            lcoes = [r['lcoe'] for r in results]
+
+            traces.append({
+                'x': matches,
+                'y': lcoes,
+                'type': 'scatter',
+                'mode': 'lines+markers',
+                'name': f'{hours}h storage',
+                'line': {'color': storage_colors[hours], 'width': 2},
+                'marker': {'size': 5}
+            })
+
+            max_match = max(matches)
+            print(f"    {hours}h: Max achievable = {max_match:.0f}%, LCOE at max = ${lcoes[-1]:.0f}/MWh")
+
+    # Find ceiling points for vertical lines
+    shapes = []
+    annotations = []
+
+    for hours in storage_hours_list:
+        if hours in all_results and all_results[hours]:
+            ceiling = max(r['match'] for r in all_results[hours])
+            lcoe_at_ceiling = [r['lcoe'] for r in all_results[hours] if r['match'] == ceiling][0]
+
+            # Add vertical dashed line at ceiling
+            shapes.append({
+                'type': 'line',
+                'x0': ceiling, 'x1': ceiling,
+                'y0': 50, 'y1': lcoe_at_ceiling,
+                'line': {'color': storage_colors[hours], 'width': 1, 'dash': 'dot'}
+            })
 
     chart = {
-        'data': [
-            {
-                'x': targets_plot,
-                'y': total_lcoes,
-                'type': 'scatter',
-                'mode': 'lines+markers',
-                'name': 'Total System LCOE',
-                'line': {'color': '#202124', 'width': 3},
-                'marker': {'size': 6}
-            },
-            {
-                'x': targets_plot,
-                'y': gas_contributions,
-                'type': 'scatter',
-                'mode': 'lines+markers',
-                'name': 'Gas Contribution to LCOE',
-                'line': {'color': COLORS['gas'], 'width': 3},
-                'marker': {'size': 6},
-                'fill': 'tozeroy',
-                'fillcolor': 'rgba(234, 67, 53, 0.2)'
-            },
-            {
-                'x': targets_plot,
-                'y': gas_capacities,
-                'type': 'scatter',
-                'mode': 'lines+markers',
-                'name': 'Gas Capacity (MW)',
-                'line': {'color': COLORS['gas'], 'width': 2, 'dash': 'dot'},
-                'marker': {'size': 4},
-                'yaxis': 'y2'
-            }
-        ],
+        'data': traces,
         'layout': {
             **LAYOUT_DEFAULTS,
             'xaxis': {
-                'title': 'Clean Energy Target (%)',
+                'title': 'Clean Energy Match (%)',
                 'showgrid': True,
                 'gridcolor': 'rgba(0,0,0,0.1)',
                 'range': [0, 100]
             },
             'yaxis': {
-                'title': 'LCOE ($/MWh)',
+                'title': 'System LCOE ($/MWh)',
                 'showgrid': True,
                 'gridcolor': 'rgba(0,0,0,0.1)',
-                'side': 'left'
+                'range': [50, 300]
             },
-            'yaxis2': {
-                'title': 'Gas Capacity (MW)',
-                'titlefont': {'color': COLORS['gas']},
-                'tickfont': {'color': COLORS['gas']},
-                'showgrid': False,
-                'overlaying': 'y',
-                'side': 'right'
-            },
+            'shapes': shapes,
             'annotations': [
                 {
-                    'x': 20,
-                    'y': gas_contributions[targets_plot.index(20)] if 20 in targets_plot else gas_contributions[4],
-                    'text': 'Gas dominates<br>at low clean %',
+                    'x': 50,
+                    'y': 80,
+                    'text': 'Solar alone hits<br>ceiling at ~50%',
                     'showarrow': True,
                     'arrowhead': 2,
-                    'ax': 40,
+                    'ax': -50,
                     'ay': -30,
                     'font': {'size': 10}
                 },
                 {
-                    'x': 90,
-                    'y': gas_contributions[-3] if len(gas_contributions) > 3 else gas_contributions[-1],
-                    'text': 'Gas < $10/MWh<br>but capacity still needed',
+                    'x': 80,
+                    'y': 200,
+                    'text': 'Cost explodes<br>beyond ceiling',
                     'showarrow': True,
                     'arrowhead': 2,
-                    'ax': -50,
-                    'ay': 30,
+                    'ax': 30,
+                    'ay': -20,
                     'font': {'size': 10}
                 }
             ]
