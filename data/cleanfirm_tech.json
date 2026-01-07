@@ -1,0 +1,136 @@
+{
+  "data": [
+    {
+      "x": [
+        3,
+        5,
+        7,
+        9,
+        12
+      ],
+      "y": [
+        49.2595080044672,
+        58.68213475710218,
+        69.11388900826698,
+        80.36150375429077,
+        98.36264944395862
+      ],
+      "type": "scatter",
+      "mode": "lines+markers",
+      "name": "Geothermal",
+      "line": {
+        "color": "#34a853",
+        "width": 3
+      },
+      "marker": {
+        "size": 8
+      }
+    },
+    {
+      "x": [
+        3,
+        5,
+        7,
+        9,
+        12
+      ],
+      "y": [
+        79.81521280714753,
+        94.89141561136348,
+        111.58222241322717,
+        129.5784060068652,
+        158.3802391103338
+      ],
+      "type": "scatter",
+      "mode": "lines+markers",
+      "name": "Nuclear",
+      "line": {
+        "color": "#673ab7",
+        "width": 3
+      },
+      "marker": {
+        "size": 8
+      }
+    },
+    {
+      "x": [
+        3,
+        5,
+        7,
+        9,
+        12
+      ],
+      "y": [
+        85.27785240134017,
+        88.10464042713065,
+        91.2341667024801,
+        94.60845112628722,
+        100.00879483318758
+      ],
+      "type": "scatter",
+      "mode": "lines+markers",
+      "name": "Hydrogen",
+      "line": {
+        "color": "#4285f4",
+        "width": 3
+      },
+      "marker": {
+        "size": 8
+      }
+    }
+  ],
+  "layout": {
+    "font": {
+      "family": "Google Sans, -apple-system, sans-serif",
+      "size": 12
+    },
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "margin": {
+      "l": 60,
+      "r": 40,
+      "t": 40,
+      "b": 60
+    },
+    "hovermode": "x unified",
+    "legend": {
+      "orientation": "h",
+      "yanchor": "bottom",
+      "y": 1.02,
+      "xanchor": "center",
+      "x": 0.5
+    },
+    "xaxis": {
+      "title": "Discount Rate (%)",
+      "showgrid": true,
+      "gridcolor": "rgba(0,0,0,0.1)"
+    },
+    "yaxis": {
+      "title": "Clean Firm LCOE ($/MWh)",
+      "showgrid": true,
+      "gridcolor": "rgba(0,0,0,0.1)"
+    },
+    "annotations": [
+      {
+        "x": 5,
+        "y": 45,
+        "text": "Geothermal wins<br>at low rates",
+        "showarrow": false,
+        "font": {
+          "size": 10,
+          "color": "#34a853"
+        }
+      },
+      {
+        "x": 10,
+        "y": 85,
+        "text": "Hydrogen has<br>fuel cost floor",
+        "showarrow": false,
+        "font": {
+          "size": 10,
+          "color": "#4285f4"
+        }
+      }
+    ]
+  }
+}

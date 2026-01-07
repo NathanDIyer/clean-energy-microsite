@@ -1,0 +1,84 @@
+{
+  "data": [
+    {
+      "x": [
+        "Baseline\n(7%, no ITC)",
+        "With 30% ITC\n(7%)",
+        "Low Cost of Capital\n(4%, no ITC)",
+        "Both\n(4%, 30% ITC)"
+      ],
+      "y": [
+        100.36224997337844,
+        84.15590653004102,
+        85.59445449339914,
+        73.15833843112314
+      ],
+      "type": "bar",
+      "marker": {
+        "color": [
+          "#9aa0a6",
+          "#fbbc05",
+          "#4285f4",
+          "#ff7900"
+        ]
+      },
+      "text": [
+        "$100",
+        "$84",
+        "$86",
+        "$73"
+      ],
+      "textposition": "outside"
+    }
+  ],
+  "layout": {
+    "font": {
+      "family": "Google Sans, -apple-system, sans-serif",
+      "size": 12
+    },
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "margin": {
+      "l": 60,
+      "r": 40,
+      "t": 40,
+      "b": 60
+    },
+    "hovermode": "x unified",
+    "legend": {
+      "orientation": "h",
+      "yanchor": "bottom",
+      "y": 1.02,
+      "xanchor": "center",
+      "x": 0.5
+    },
+    "title": "System LCOE at 95% Clean Energy",
+    "yaxis": {
+      "title": "LCOE ($/MWh)",
+      "showgrid": true,
+      "gridcolor": "rgba(0,0,0,0.1)",
+      "range": [
+        0,
+        115.41658746938519
+      ]
+    },
+    "xaxis": {
+      "showgrid": false
+    },
+    "showlegend": false,
+    "annotations": [
+      {
+        "x": 0.5,
+        "y": -0.2,
+        "xref": "paper",
+        "yref": "paper",
+        "text": "ITC saves $16/MWh | Lower cost of capital saves $15/MWh",
+        "showarrow": false,
+        "font": {
+          "size": 12,
+          "color": "#333"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "data": [
+    {
+      "x": [
+        "Baseline",
+        "Cheap Storage",
+        "Cheap Clean Firm",
+        "Expensive Gas"
+      ],
+      "y": [
+        100.36224997337844,
+        96.71690337218708,
+        82.15157841035784,
+        101.60248555996887
+      ],
+      "type": "bar",
+      "marker": {
+        "color": [
+          "#4285f4",
+          "#673ab7",
+          "#ff7900",
+          "#ea4335"
+        ]
+      }
+    }
+  ],
+  "layout": {
+    "font": {
+      "family": "Google Sans, -apple-system, sans-serif",
+      "size": 12
+    },
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "margin": {
+      "l": 60,
+      "r": 40,
+      "t": 40,
+      "b": 60
+    },
+    "hovermode": "x unified",
+    "legend": {
+      "orientation": "h",
+      "yanchor": "bottom",
+      "y": 1.02,
+      "xanchor": "center",
+      "x": 0.5
+    },
+    "title": "LCOE at 95% Clean Energy Under Different Cost Scenarios",
+    "xaxis": {
+      "showgrid": false
+    },
+    "yaxis": {
+      "title": "LCOE ($/MWh)",
+      "showgrid": true,
+      "gridcolor": "rgba(0,0,0,0.1)"
+    },
+    "showlegend": false
+  }
+}

@@ -1,0 +1,192 @@
+{
+  "data": [
+    {
+      "x": [
+        50,
+        60,
+        70,
+        80,
+        85,
+        90,
+        92,
+        95,
+        97,
+        99
+      ],
+      "y": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        245.28,
+        350.4,
+        350.4,
+        560.64,
+        744.6
+      ],
+      "type": "scatter",
+      "mode": "lines",
+      "name": "Clean Firm",
+      "stackgroup": "one",
+      "fillcolor": "#ff7900",
+      "line": {
+        "color": "#ff7900",
+        "width": 0
+      }
+    },
+    {
+      "x": [
+        50,
+        60,
+        70,
+        80,
+        85,
+        90,
+        92,
+        95,
+        97,
+        99
+      ],
+      "y": [
+        0.0,
+        0.0,
+        0.0,
+        9.894960325835592,
+        3.5920226930956884,
+        3.398230737915056,
+        20.497681887218977,
+        5.378666100982277,
+        16.936881132419217,
+        25.475515400040106
+      ],
+      "type": "scatter",
+      "mode": "lines",
+      "name": "Storage (shifted)",
+      "stackgroup": "one",
+      "fillcolor": "#673ab7",
+      "line": {
+        "color": "#673ab7",
+        "width": 0
+      }
+    },
+    {
+      "x": [
+        50,
+        60,
+        70,
+        80,
+        85,
+        90,
+        92,
+        95,
+        97,
+        99
+      ],
+      "y": [
+        268.56393531556586,
+        298.37973637377024,
+        372.96835890269966,
+        522.1987955156941,
+        656.4980346714016,
+        522.5136349999999,
+        373.224025,
+        522.5136349999999,
+        298.57921999999996,
+        149.28960999999998
+      ],
+      "type": "scatter",
+      "mode": "lines",
+      "name": "Wind",
+      "stackgroup": "one",
+      "fillcolor": "#4285f4",
+      "line": {
+        "color": "#4285f4",
+        "width": 0
+      }
+    },
+    {
+      "x": [
+        50,
+        60,
+        70,
+        80,
+        85,
+        90,
+        92,
+        95,
+        97,
+        99
+      ],
+      "y": [
+        168.4937161366869,
+        240.69363790438842,
+        300.8344327937277,
+        300.78747750840324,
+        300.7937268051236,
+        204.70517700000002,
+        240.82962,
+        240.82962,
+        168.580734,
+        120.41481
+      ],
+      "type": "scatter",
+      "mode": "lines",
+      "name": "Solar",
+      "stackgroup": "one",
+      "fillcolor": "#fbbc05",
+      "line": {
+        "color": "#fbbc05",
+        "width": 0
+      }
+    }
+  ],
+  "layout": {
+    "font": {
+      "family": "Google Sans, -apple-system, sans-serif",
+      "size": 12
+    },
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "margin": {
+      "l": 60,
+      "r": 40,
+      "t": 40,
+      "b": 60
+    },
+    "hovermode": "x unified",
+    "legend": {
+      "orientation": "h",
+      "yanchor": "bottom",
+      "y": 1.02,
+      "xanchor": "center",
+      "x": 0.5
+    },
+    "xaxis": {
+      "title": "Clean Energy Target (%)",
+      "showgrid": true,
+      "gridcolor": "rgba(0,0,0,0.1)"
+    },
+    "yaxis": {
+      "title": "Annual Energy (GWh)",
+      "showgrid": true,
+      "gridcolor": "rgba(0,0,0,0.1)"
+    },
+    "annotations": [
+      {
+        "x": 97,
+        "y": 522.3684175662096,
+        "text": "Clean firm >50%<br>at 97%",
+        "showarrow": true,
+        "arrowhead": 2,
+        "ax": 40,
+        "ay": -30,
+        "font": {
+          "size": 11,
+          "color": "#ff7900"
+        },
+        "bgcolor": "rgba(255,255,255,0.8)"
+      }
+    ]
+  }
+}

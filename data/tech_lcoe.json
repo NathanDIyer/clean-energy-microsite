@@ -1,0 +1,83 @@
+{
+  "data": [
+    {
+      "x": [
+        "Solar",
+        "Wind",
+        "Gas",
+        "Clean Firm"
+      ],
+      "y": [
+        49.951107645322224,
+        49.99070805345949,
+        62.42728559175954,
+        101.44300681121116
+      ],
+      "type": "bar",
+      "marker": {
+        "color": [
+          "#fbbc05",
+          "#4285f4",
+          "#ea4335",
+          "#ff7900"
+        ]
+      },
+      "text": [
+        "$50",
+        "$50",
+        "$62",
+        "$101"
+      ],
+      "textposition": "outside"
+    }
+  ],
+  "layout": {
+    "font": {
+      "family": "Google Sans, -apple-system, sans-serif",
+      "size": 12
+    },
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "margin": {
+      "l": 60,
+      "r": 40,
+      "t": 40,
+      "b": 60
+    },
+    "hovermode": "x unified",
+    "legend": {
+      "orientation": "h",
+      "yanchor": "bottom",
+      "y": 1.02,
+      "xanchor": "center",
+      "x": 0.5
+    },
+    "title": "Standalone Technology LCOE",
+    "yaxis": {
+      "title": "LCOE ($/MWh)",
+      "showgrid": true,
+      "gridcolor": "rgba(0,0,0,0.1)",
+      "range": [
+        0,
+        121.7316081734534
+      ]
+    },
+    "xaxis": {
+      "showgrid": false
+    },
+    "showlegend": false,
+    "annotations": [
+      {
+        "x": "Solar",
+        "y": 57.951107645322224,
+        "text": "Cheapest!",
+        "showarrow": false,
+        "font": {
+          "size": 11,
+          "color": "#fbbc05",
+          "weight": "bold"
+        }
+      }
+    ]
+  }
+}

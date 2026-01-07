@@ -1,0 +1,120 @@
+{
+  "data": [
+    {
+      "x": [
+        "Solar",
+        "Wind",
+        "Storage",
+        "Clean Firm",
+        "Gas"
+      ],
+      "y": [
+        43.10179257682908,
+        36.94439363728206,
+        86.20358515365814,
+        63.384989083572165,
+        25.861075546097442
+      ],
+      "type": "bar",
+      "name": "Capital (Capex)",
+      "marker": {
+        "color": "#1a73e8"
+      }
+    },
+    {
+      "x": [
+        "Solar",
+        "Wind",
+        "Storage",
+        "Clean Firm",
+        "Gas"
+      ],
+      "y": [
+        6.8493150684931505,
+        13.04631441617743,
+        35.441400304414,
+        18.058017727639,
+        6.566210045662101
+      ],
+      "type": "bar",
+      "name": "O&M",
+      "marker": {
+        "color": "#34a853"
+      }
+    },
+    {
+      "x": [
+        "Solar",
+        "Wind",
+        "Storage",
+        "Clean Firm",
+        "Gas"
+      ],
+      "y": [
+        0,
+        0,
+        0,
+        20,
+        30.0
+      ],
+      "type": "bar",
+      "name": "Fuel",
+      "marker": {
+        "color": "#ea4335"
+      }
+    }
+  ],
+  "layout": {
+    "font": {
+      "family": "Google Sans, -apple-system, sans-serif",
+      "size": 12
+    },
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "margin": {
+      "l": 60,
+      "r": 40,
+      "t": 40,
+      "b": 60
+    },
+    "hovermode": "x unified",
+    "legend": {
+      "orientation": "h",
+      "yanchor": "bottom",
+      "y": 1.02,
+      "xanchor": "center",
+      "x": 0.5
+    },
+    "barmode": "stack",
+    "xaxis": {
+      "showgrid": false
+    },
+    "yaxis": {
+      "title": "Cost Component ($/MWh)",
+      "showgrid": true,
+      "gridcolor": "rgba(0,0,0,0.1)"
+    },
+    "annotations": [
+      {
+        "x": "Gas",
+        "y": 67.42728559175954,
+        "text": "48% fuel",
+        "showarrow": false,
+        "font": {
+          "size": 10,
+          "color": "#ea4335"
+        }
+      },
+      {
+        "x": "Solar",
+        "y": 48.10179257682908,
+        "text": "86% capex",
+        "showarrow": false,
+        "font": {
+          "size": 10,
+          "color": "#fbbc05"
+        }
+      }
+    ]
+  }
+}

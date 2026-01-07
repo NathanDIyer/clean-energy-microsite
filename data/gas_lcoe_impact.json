@@ -1,0 +1,92 @@
+{
+  "data": [
+    {
+      "x": [
+        "70%",
+        "80%",
+        "90%",
+        "95%",
+        "99%"
+      ],
+      "y": [
+        75.02460320901527,
+        79.52710955879529,
+        91.34707445365892,
+        100.36224997337844,
+        110.19246497086591
+      ],
+      "type": "bar",
+      "name": "Total System LCOE",
+      "marker": {
+        "color": "#4285f4"
+      }
+    },
+    {
+      "x": [
+        "70%",
+        "80%",
+        "90%",
+        "95%",
+        "99%"
+      ],
+      "y": [
+        25.463914334895076,
+        20.84217674209911,
+        15.056812112364463,
+        11.791827951903485,
+        5.930076326839223
+      ],
+      "type": "bar",
+      "name": "Gas Contribution to LCOE",
+      "marker": {
+        "color": "#ea4335"
+      }
+    }
+  ],
+  "layout": {
+    "font": {
+      "family": "Google Sans, -apple-system, sans-serif",
+      "size": 12
+    },
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "margin": {
+      "l": 60,
+      "r": 40,
+      "t": 40,
+      "b": 60
+    },
+    "hovermode": "x unified",
+    "legend": {
+      "orientation": "h",
+      "yanchor": "bottom",
+      "y": 1.02,
+      "xanchor": "center",
+      "x": 0.5
+    },
+    "barmode": "group",
+    "xaxis": {
+      "title": "Clean Energy Target",
+      "showgrid": false
+    },
+    "yaxis": {
+      "title": "LCOE ($/MWh)",
+      "showgrid": true,
+      "gridcolor": "rgba(0,0,0,0.1)"
+    },
+    "annotations": [
+      {
+        "x": 0.5,
+        "y": -0.15,
+        "xref": "paper",
+        "yref": "paper",
+        "text": "Gas provides reliability but contributes only ~$5-15/MWh to total LCOE",
+        "showarrow": false,
+        "font": {
+          "size": 11,
+          "color": "#333"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Clean Energy Puzzle</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body>
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="container">
+            <h1>The Clean Energy Puzzle</h1>
+            <p class="subtitle">Solar is the cheapest electricity ever generated.<br>
+            So why does a 95% clean system cost $100/MWh—twice the price of solar alone?</p>
+            <p class="hero-cta">This site solves that puzzle.</p>
+            <p class="hero-link">Explore the interactive model at <a href="https://www.niyer-energy-dashboards.com/">niyer-energy-dashboards.com</a></p>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- ============================================ -->
+        <!-- PART 1: THE MYSTERY -->
+        <!-- ============================================ -->
+        <div class="part-header">
+            <span class="part-label">Part 1</span>
+            <h2 class="part-title">The Mystery</h2>
+        </div>
+
+        <!-- 1.1 The Price Gap -->
+        <section id="tech-lcoe" class="section">
+            <h2>The Cheapest Electricity Ever</h2>
+            <p>Solar has the lowest levelized cost of electricity (LCOE) of any generation technology. If we're trying to minimize system cost, shouldn't we just build all solar?</p>
+            <div id="chart-tech-lcoe" class="chart-container"></div>
+            <p class="insight">At $50/MWh, solar is half the cost of clean firm power. The answer seems obvious...</p>
+        </section>
+
+        <!-- 1.2 Cost Structure -->
+        <section id="cost-structure" class="section">
+            <h2>Why Solar Is So Cheap</h2>
+            <p>Solar's low cost comes from its simplicity: no fuel, minimal operations. It's 86% upfront capital cost. But this raises a question: <em>what happens if you can't use all the energy you generate?</em></p>
+            <div id="chart-cost-structure" class="chart-container"></div>
+        </section>
+
+        <!-- 1.3 But The System Cost Rises -->
+        <section id="cost-reality" class="section">
+            <h2>But Something Strange Happens</h2>
+            <p>When we optimize a real power system to meet higher clean energy targets, the cost doesn't stay at $50/MWh. It rises—sharply at high targets.</p>
+            <div id="chart-lcoe-curve" class="chart-container"></div>
+            <div class="callout">
+                <strong>The mystery:</strong> If we're using the cheapest technology, why does the system cost more? Where does the extra $50/MWh come from?
+            </div>
+            <p class="transition-text">The answer has two parts: an <strong>energy problem</strong> and a <strong>capacity problem</strong>.</p>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- PART 2: THE ENERGY PROBLEM -->
+        <!-- ============================================ -->
+        <div class="part-header">
+            <span class="part-label">Part 2</span>
+            <h2 class="part-title">The Energy Problem</h2>
+            <p class="part-subtitle">Cheap energy at the wrong time isn't cheap energy</p>
+        </div>
+
+        <!-- 2.1 The Timing Mismatch -->
+        <section id="mismatch" class="section">
+            <h2>The Timing Mismatch</h2>
+            <p>Look at a typical day: electricity demand peaks in the evening when people come home from work, but solar production peaks at midday. This fundamental mismatch is the root of the challenge.</p>
+            <div id="chart-mismatch" class="chart-container"></div>
+            <p class="insight">Solar produces the most when we need it least, and produces nothing when we need it most.</p>
+        </section>
+
+        <!-- 2.2 The Solar Ceiling -->
+        <section id="solar-paradox" class="section">
+            <h2>The Solar Ceiling</h2>
+            <p>What happens if we just keep building more solar to compensate? We hit a ceiling. No matter how much solar you build, it can only provide about 50% of annual electricity demand.</p>
+            <div id="chart-solar-paradox" class="chart-container"></div>
+            <div class="callout">
+                <strong>Where does the rest go?</strong> It gets <em>curtailed</em>—wasted because there's no demand for it when it's generated.
+            </div>
+        </section>
+
+        <!-- 2.3 The Real Cost of Solar -->
+        <section id="effective-lcoe" class="section">
+            <h2>The Real Cost of Solar</h2>
+            <p>Here's the key insight: solar's $50/MWh LCOE assumes every MWh generated gets used. But as curtailment increases, the <strong>effective cost per useful MWh</strong> rises dramatically:</p>
+            <div id="chart-effective-lcoe" class="chart-container"></div>
+            <div class="callout warning">
+                <strong>This is why "cheapest" doesn't mean "best":</strong> At 500 MW of solar, you're paying $50/MWh for energy—but only half of it is useful. The effective cost is closer to $100/MWh. This explains a big chunk of the mystery.
+            </div>
+        </section>
+
+        <!-- 2.4 Declining Marginal Value -->
+        <section id="marginal-energy" class="section">
+            <h2>Why Cheap Gets Expensive</h2>
+            <p>This is the key insight: each additional MW of solar produces <em>less useful energy</em> than the last, because more of it gets curtailed. Clean firm power, by contrast, maintains its value.</p>
+            <div id="chart-marginal-energy" class="chart-container"></div>
+            <div class="callout">
+                <strong>The hidden cost:</strong> Solar's $50/MWh LCOE assumes 100% utilization. But the 500th MW of solar might only deliver 10% of its potential energy. That makes its <em>effective</em> LCOE five times higher.
+            </div>
+            <p class="transition-text">But there's a second problem. Even if we could use all the energy, we still need <strong>reliability</strong>...</p>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- PART 3: THE CAPACITY PROBLEM -->
+        <!-- ============================================ -->
+        <div class="part-header">
+            <span class="part-label">Part 3</span>
+            <h2 class="part-title">The Capacity Problem</h2>
+            <p class="part-subtitle">Cheap energy you can't count on has limited value</p>
+        </div>
+
+        <!-- 3.1 Reliability Has Value -->
+        <section id="elcc" class="section">
+            <h2>Reliability Has Value</h2>
+            <p>Beyond energy value, there's <strong>capacity value</strong>: can you count on a resource to deliver power when you need it most? Each resource has a ceiling on how much clean energy it can provide <em>on its own</em>:</p>
+            <div id="chart-elcc" class="chart-container"></div>
+            <p class="insight">Solar alone maxes out at ~50%. Wind reaches ~70%. Only clean firm power can get you to 100%—with nearly linear returns.</p>
+        </section>
+
+        <!-- 3.2 Can Storage Save Solar? -->
+        <section id="elcc-storage" class="section">
+            <h2>Can Storage Save Solar?</h2>
+            <p>Storage shifts solar energy from midday (when abundant) to evening (when needed). Does it solve the reliability problem?</p>
+            <div id="chart-elcc-storage" class="chart-container"></div>
+            <div class="callout">
+                <strong>Partial solution:</strong> Storage lifts solar's ceiling from ~50% to ~65%. That's significant, but still far from 100%. Wind gets less benefit because it's already better aligned with demand.
+            </div>
+            <p class="transition-text">This is where <strong>clean firm power</strong> comes in. It solves <em>both</em> problems...</p>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- PART 4: THE SOLUTION -->
+        <!-- ============================================ -->
+        <div class="part-header">
+            <span class="part-label">Part 4</span>
+            <h2 class="part-title">The Solution</h2>
+            <p class="part-subtitle">Why optimal systems use expensive-looking technology</p>
+        </div>
+
+        <!-- 4.1 The Keystone (Text only) -->
+        <section id="keystone" class="section keystone-section">
+            <h2>Clean Firm: The Keystone</h2>
+            <p>Clean firm power (advanced geothermal, hydrogen turbines, next-gen nuclear) costs $101/MWh—twice as much as solar. So why does every optimal high-clean system use it?</p>
+            <p><strong>Because it solves both problems at once:</strong></p>
+            <div class="two-column">
+                <div class="column">
+                    <h3>Energy Value</h3>
+                    <p>No curtailment. Every MWh generated is useful. The 100th MW delivers as much value as the 1st.</p>
+                </div>
+                <div class="column">
+                    <h3>Capacity Value</h3>
+                    <p>100% reliable. Available exactly when needed—evening peaks, winter weeks, any hour of any day.</p>
+                </div>
+            </div>
+            <p class="insight">At high clean targets, these properties are worth far more than the $50/MWh price premium. This explains the counterintuitive results you're about to see...</p>
+        </section>
+
+        <!-- 4.2 How the Mix Evolves -->
+        <section id="resource-mix" class="section">
+            <h2>How the Optimal Mix Evolves</h2>
+            <p>Now watch what happens to the optimal resource mix as we push for higher clean energy targets:</p>
+            <div id="chart-resource-mix" class="chart-container"></div>
+            <div class="callout">
+                <strong>Notice the counterintuitive pattern:</strong> Solar actually <em>decreases</em> after 85%. Clean firm power takes over. Now you know why—the system needs reliability, not more curtailed energy.
+            </div>
+        </section>
+
+        <!-- 4.3 Where Cost Comes From -->
+        <section id="lcoe-breakdown" class="section">
+            <h2>Where the Cost Comes From</h2>
+            <p>At a 95% clean target, here's how each resource contributes to total system LCOE:</p>
+            <div id="chart-lcoe-breakdown" class="chart-container"></div>
+            <p class="insight">Clean firm is 38% of cost but provides the reliability that makes 95% clean possible. The $50 gap between solar's LCOE and system LCOE? It's the cost of <strong>reliability</strong>.</p>
+        </section>
+
+        <!-- 4.4 Gas LCOE Impact -->
+        <section id="gas-lcoe-impact" class="section">
+            <h2>Backup Gas Is Cheaper Than You Think</h2>
+            <p>Even high-clean systems need backup gas capacity. But here's the surprise: it barely affects the total cost.</p>
+            <div id="chart-gas-lcoe-impact" class="chart-container"></div>
+            <div class="callout">
+                <strong>Why so little impact?</strong> At 95% clean, gas plants only run ~5% of hours. Low utilization = low fuel costs. Reliability doesn't require burning much fuel.
+            </div>
+        </section>
+
+        <!-- 4.5 The Leap -->
+        <section id="the-leap" class="section">
+            <h2>The Leap in Action</h2>
+            <p>To see the difference, compare how a system operates during a challenging winter week at 70% vs 95% clean:</p>
+            <div id="chart-leap" class="chart-container" style="min-height: 500px;"></div>
+            <div class="callout warning">
+                <strong>The transformation:</strong> At 70%, gas fills the gaps. At 95%, clean firm power takes over—providing the same reliability without the emissions.
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- PART 5: TESTING OUR UNDERSTANDING -->
+        <!-- ============================================ -->
+        <div class="part-header">
+            <span class="part-label">Part 5</span>
+            <h2 class="part-title">Testing Our Understanding</h2>
+            <p class="part-subtitle">Does this hold up under different conditions?</p>
+        </div>
+
+        <!-- 5.1 Regional Differences -->
+        <section id="regional" class="section">
+            <h2>Regional Differences</h2>
+            <p>Geography matters. The optimal clean energy strategy varies by region based on available resources:</p>
+            <div id="chart-regional" class="chart-container"></div>
+            <ul class="region-notes">
+                <li><strong>Texas:</strong> Excellent wind means less reliance on clean firm—and lowest cost.</li>
+                <li><strong>California:</strong> Balanced solar and wind. Moderate clean firm needs.</li>
+                <li><strong>Florida:</strong> Limited wind forces heavy reliance on clean firm—highest cost.</li>
+            </ul>
+        </section>
+
+        <!-- 5.2 Gas Price Crossover -->
+        <section id="gas-crossover" class="section">
+            <h2>The Gas Price Hedge</h2>
+            <p>At what gas price does clean energy become cheaper than gas-only? And what happens during price spikes?</p>
+            <div id="chart-gas-crossover" class="chart-container"></div>
+            <div class="callout">
+                <strong>Hidden value:</strong> At $8+/MMBtu gas (seen in 2022), 90% clean becomes cost-competitive. And crucially, high-clean systems are <em>insulated</em> from price spikes—a 95% clean system barely moves when gas prices double.
+            </div>
+        </section>
+
+        <!-- 5.3 What If No Clean Firm? -->
+        <section id="no-cleanfirm" class="section">
+            <h2>What If No Clean Firm Power?</h2>
+            <p>Clean firm technologies are still emerging. What if we can't rely on them?</p>
+            <div id="chart-no-cleanfirm" class="chart-container"></div>
+            <div class="callout danger">
+                <strong>Critical finding:</strong> Without clean firm, costs explode at high targets. A 95% target becomes 40% more expensive. 99% may be impractical.
+            </div>
+        </section>
+
+        <!-- 5.4 Clean Firm Technologies -->
+        <section id="cleanfirm-tech" class="section">
+            <h2>Clean Firm Technology Paths</h2>
+            <p>Not all clean firm technologies are equal. Their economics vary dramatically with financing costs:</p>
+            <div id="chart-cleanfirm-tech" class="chart-container"></div>
+            <ul class="region-notes">
+                <li><strong>Geothermal:</strong> Zero fuel = 100% capex. Cheapest at low discount rates, but very sensitive to financing.</li>
+                <li><strong>Nuclear:</strong> High capex, low fuel. Expensive but predictable.</li>
+                <li><strong>Hydrogen:</strong> Low capex, high fuel. Less sensitive to financing, higher floor cost.</li>
+            </ul>
+        </section>
+
+        <!-- 5.5 Financing Impact -->
+        <section id="financing" class="section">
+            <h2>Financing Matters More Than Tax Credits</h2>
+            <p>Policy debates focus on tax credits. But for capital-intensive clean energy, financing costs may matter even more:</p>
+            <div id="chart-financing" class="chart-container"></div>
+            <div class="callout">
+                <strong>Policy implication:</strong> Reducing financing costs (loan guarantees, green banks, de-risking) can be as powerful as tax credits—and helps all clean technologies.
+            </div>
+        </section>
+
+        <!-- 5.6 What If No Wind? -->
+        <section id="no-wind" class="section">
+            <h2>What If No Wind?</h2>
+            <p>Some regions like Florida have limited wind. Here's what happens:</p>
+            <div id="chart-no-wind" class="chart-container"></div>
+            <p class="insight">Without wind, clean firm becomes even more critical. Solar + storage alone can't get you there affordably.</p>
+        </section>
+
+        <!-- 5.7 The Greedy Trap -->
+        <section id="greedy-trap" class="section">
+            <h2>The Optimization Trap</h2>
+            <p>The intuitive approach—keep adding whichever resource gives the best $/MWh improvement—fails at high targets:</p>
+            <div id="chart-greedy" class="chart-container"></div>
+            <div class="callout">
+                <strong>The penalty grows with ambition:</strong> At 70%, greedy and optimal converge. By 99%, greedy costs 10% more—overbuilding cheap solar/wind instead of investing in reliability.
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- IMPLICATIONS -->
+        <!-- ============================================ -->
+        <div class="part-header">
+            <span class="part-label">Takeaways</span>
+            <h2 class="part-title">Implications</h2>
+        </div>
+
+        <section id="implications" class="section">
+            <div class="implications-grid">
+                <div class="implication-card">
+                    <h3>Clean Firm Is the Keystone</h3>
+                    <p>Developing affordable clean firm power (hydrogen, advanced geothermal, next-gen nuclear) is critical for affordable decarbonization beyond 90%.</p>
+                </div>
+                <div class="implication-card">
+                    <h3>95% Is the Sweet Spot</h3>
+                    <p>Getting from 95% to 100% is disproportionately expensive. A 95% clean grid may be the pragmatic near-term target.</p>
+                </div>
+                <div class="implication-card">
+                    <h3>Optimization Matters</h3>
+                    <p>Naive planning approaches waste billions. Sophisticated optimization that considers the full resource mix is essential.</p>
+                </div>
+                <div class="implication-card">
+                    <h3>Wind-Limited Regions Face Higher Costs</h3>
+                    <p>Areas like Florida and the Southeast will need more investment in clean firm to achieve high clean targets affordably.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="section">
+            <p>Built with data from the Clean Energy Optimization Model. Charts are interactive—hover for details, drag to zoom.</p>
+            <p class="footer-cta">Try it yourself: <a href="https://www.niyer-energy-dashboards.com/">niyer-energy-dashboards.com</a></p>
+        </footer>
+    </main>
+
+    <script src="js/charts.js"></script>
+</body>
+</html>
