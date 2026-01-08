@@ -43,8 +43,8 @@ const CHARTS = {
 // Plotly config for all charts
 const PLOTLY_CONFIG = {
     responsive: true,
-    displayModeBar: true,
-    modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d'],
+    displayModeBar: false,
+    staticPlot: true,
     displaylogo: false
 };
 
