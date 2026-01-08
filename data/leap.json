@@ -5647,7 +5647,7 @@
     "annotations": [
       {
         "x": 0.02,
-        "y": 0.95,
+        "y": 1.02,
         "xref": "paper",
         "yref": "paper",
         "text": "<b>70% Clean Target</b><br>Week 40 (Summer) - Max Gas: 150 MW",
@@ -5661,7 +5661,7 @@
       },
       {
         "x": 0.02,
-        "y": 0.45,
+        "y": 0.47,
         "xref": "paper",
         "yref": "paper",
         "text": "<b>95% Clean Target</b><br>Week 40 (Summer) - Max Gas: 93 MW",

@@ -19,7 +19,8 @@
       "name": "Capital (Capex)",
       "marker": {
         "color": "#1a73e8"
-      }
+      },
+      "hoverinfo": "skip"
     },
     {
       "x": [
@@ -40,7 +41,8 @@
       "name": "O&M",
       "marker": {
         "color": "#34a853"
-      }
+      },
+      "hoverinfo": "skip"
     },
     {
       "x": [
@@ -61,7 +63,8 @@
       "name": "Fuel",
       "marker": {
         "color": "#ea4335"
-      }
+      },
+      "hoverinfo": "skip"
     }
   ],
   "layout": {
@@ -101,18 +104,18 @@
         "text": "48% fuel",
         "showarrow": false,
         "font": {
-          "size": 10,
+          "size": 11,
           "color": "#ea4335"
         }
       },
       {
         "x": "Solar",
-        "y": 48.10179257682908,
+        "y": 54.951107645322224,
         "text": "86% capex",
         "showarrow": false,
         "font": {
-          "size": 10,
-          "color": "#fbbc05"
+          "size": 11,
+          "color": "#333"
         }
       }
     ]

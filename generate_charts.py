@@ -28,6 +28,14 @@ except ImportError:
     HAS_V4 = False
     print("Warning: V4 optimizer not available, using simplified optimization")
 
+# Import incremental walk from optimizer for accurate greedy comparison
+try:
+    from optimizer import run_incremental_cost_walk
+    HAS_INCREMENTAL_WALK = True
+except ImportError:
+    HAS_INCREMENTAL_WALK = False
+    print("Warning: Incremental walk optimizer not available")
+
 # Chart colors matching the main app
 COLORS = {
     'solar': '#fbbc05',
@@ -579,7 +587,7 @@ def generate_leap_chart(zone_data, zone='California', cost_settings=None):
         week_label = "Winter" if data['peak_week'] < 13 or data['peak_week'] > 39 else "Summer"
         chart['layout']['annotations'].append({
             'x': 0.02,
-            'y': 0.95 if i == 0 else 0.45,
+            'y': 1.02 if i == 0 else 0.47,
             'xref': 'paper',
             'yref': 'paper',
             'text': f"<b>{target}% Clean Target</b><br>Week {data['peak_week']+1} ({week_label}) - Max Gas: {data['max_gas']:.0f} MW",
@@ -944,115 +952,48 @@ def generate_no_wind_chart(zone_data, zone='California', cost_settings=None):
     return chart
 
 
-def run_greedy_optimization(zone_data, zone, target, cost_settings):
+def run_greedy_optimization(zone_data, zone, target, cost_settings, hybrid_mode=True):
     """
-    Run greedy optimization: iteratively add cheapest resource by LCOE impact.
-    This represents naive planning that ignores system-level optimization.
+    Run incremental cost walk optimization using the same algorithm as the main dashboard.
+    Uses hybrid_mode by default for accurate battery dispatch.
     """
+    if not HAS_INCREMENTAL_WALK:
+        # Fallback to simple evaluation if optimizer not available
+        return run_optimization(zone_data, zone, target, cost_settings)
+
     profiles = zone_data[zone]
     solar_profile = profiles['solar']
     wind_profile = profiles['wind']
     load_profile = profiles['load']
 
-    # Resource limits and step sizes - use finer steps for smoother curves
-    max_solar, max_wind, max_storage, max_cf = 1000, 500, 2400, 125
-    step = 10  # Smaller steps for smoother optimization
+    # Get baseline LCOE (gas-only system)
+    baseline_lcoe = 65  # Approximate gas-only LCOE
 
-    current = {'solar': 0, 'wind': 0, 'storage': 0, 'clean_firm': 0}
-
-    def evaluate(config):
-        (solar_out, wind_out, _, _, gas_gen, curtailed, renewable_delivered, _,
-         clean_firm_gen, _, _) = simulate_system(
-            solar_capacity=config['solar'],
-            wind_capacity=config['wind'],
-            storage_capacity=config['storage'],
-            clean_firm_capacity=config['clean_firm'],
-            solar_profile=solar_profile,
-            wind_profile=wind_profile,
-            load_profile=load_profile,
-            battery_eff=0.85
-        )
-        annual_load = np.sum(load_profile)
-        match = (np.sum(renewable_delivered) / annual_load) * 100
-        lcoe = calculate_lcoe(
-            cost_settings, config['solar'], config['wind'],
-            config['storage'], config['clean_firm'],
-            np.sum(solar_out), np.sum(wind_out), np.sum(clean_firm_gen),
-            np.sum(gas_gen), np.max(gas_gen), np.sum(curtailed), annual_load
-        )
-        return lcoe, match
-
-    current_lcoe, current_match = evaluate(current)
-
-    # Greedy: always add the resource with best $/% match improvement
-    # Key difference from optimal: no consideration of diminishing returns or system balance
-    max_iterations = 300  # More iterations for finer steps
-    stuck_count = 0
-
-    for _ in range(max_iterations):
-        if current_match >= target:
-            break
-
-        best_move = None
-        best_efficiency = float('inf')
-
-        # Try adding each resource
-        resources = [
-            ('solar', max_solar),
-            ('wind', max_wind),
-            ('storage', max_storage),
-            # Greedy rarely picks clean firm because it's "expensive" per MW
-            ('clean_firm', max_cf)
-        ]
-
-        for res, max_val in resources:
-            if current[res] >= max_val:
-                continue
-
-            test = current.copy()
-            test[res] = min(max_val, test[res] + step)
-            test_lcoe, test_match = evaluate(test)
-
-            if test_match > current_match:
-                # Greedy metric: LCOE increase per % match gained
-                match_gain = test_match - current_match
-                lcoe_increase = test_lcoe - current_lcoe
-                efficiency = lcoe_increase / match_gain if match_gain > 0.01 else float('inf')
-
-                if efficiency < best_efficiency:
-                    best_efficiency = efficiency
-                    best_move = (res, test[res], test_lcoe, test_match)
-
-        if best_move is None:
-            # If stuck, force add something (greedy gets desperate)
-            stuck_count += 1
-            if stuck_count > 10:
-                break
-            # Try adding clean firm even if "inefficient" - greedy eventually realizes it needs it
-            for res, max_val in resources:
-                if current[res] < max_val:
-                    test = current.copy()
-                    test[res] = min(max_val, test[res] + step)
-                    test_lcoe, test_match = evaluate(test)
-                    if test_match > current_match:
-                        current[res] = test[res]
-                        current_lcoe = test_lcoe
-                        current_match = test_match
-                        break
-            continue
-
-        stuck_count = 0
-        current[best_move[0]] = best_move[1]
-        current_lcoe = best_move[2]
-        current_match = best_move[3]
+    # Run the actual incremental cost walk from optimizer.py
+    result = run_incremental_cost_walk(
+        clean_match_target=target,
+        solar_profile=solar_profile,
+        wind_profile=wind_profile,
+        current_hourly_load_profile=load_profile,
+        current_load=np.mean(load_profile),
+        cost_settings=cost_settings,
+        demand_response_val=0,
+        use_solar=True,
+        use_wind=True,
+        use_storage=True,
+        use_clean_firm=True,
+        baseline_lcoe=baseline_lcoe,
+        peak_shaver_mode=False,
+        hybrid_mode=hybrid_mode
+    )
 
     return {
-        'solar': current['solar'],
-        'wind': current['wind'],
-        'storage': current['storage'],
-        'clean_firm': current['clean_firm'],
-        'lcoe': current_lcoe,
-        'achieved_match': current_match
+        'solar': result.get('capacities', {}).get('solar', 0),
+        'wind': result.get('capacities', {}).get('wind', 0),
+        'storage': result.get('capacities', {}).get('storage', 0),
+        'clean_firm': result.get('capacities', {}).get('clean_firm', 0),
+        'lcoe': result['lcoe'],
+        'achieved_match': result['achieved_match']
     }
 
 
@@ -2046,6 +1987,10 @@ def generate_cost_structure(zone_data, zone='California', cost_settings=None):
             om_costs.append(0)
             fuel_costs.append(0)
 
+    # Calculate total heights for annotations
+    solar_total = capex_costs[0] + om_costs[0] + fuel_costs[0]
+    gas_total = capex_costs[-1] + om_costs[-1] + fuel_costs[-1]
+
     chart = {
         'data': [
             {
@@ -2053,21 +1998,24 @@ def generate_cost_structure(zone_data, zone='California', cost_settings=None):
                 'y': capex_costs,
                 'type': 'bar',
                 'name': 'Capital (Capex)',
-                'marker': {'color': '#1a73e8'}
+                'marker': {'color': '#1a73e8'},
+                'hoverinfo': 'skip'
             },
             {
                 'x': tech_names,
                 'y': om_costs,
                 'type': 'bar',
                 'name': 'O&M',
-                'marker': {'color': '#34a853'}
+                'marker': {'color': '#34a853'},
+                'hoverinfo': 'skip'
             },
             {
                 'x': tech_names,
                 'y': fuel_costs,
                 'type': 'bar',
                 'name': 'Fuel',
-                'marker': {'color': COLORS['gas']}
+                'marker': {'color': COLORS['gas']},
+                'hoverinfo': 'skip'
             }
         ],
         'layout': {
@@ -2082,17 +2030,17 @@ def generate_cost_structure(zone_data, zone='California', cost_settings=None):
             'annotations': [
                 {
                     'x': 'Gas',
-                    'y': sum([capex_costs[-1], om_costs[-1], fuel_costs[-1]]) + 5,
-                    'text': f'{fuel_costs[-1]/(capex_costs[-1]+om_costs[-1]+fuel_costs[-1])*100:.0f}% fuel',
+                    'y': gas_total + 5,
+                    'text': f'{fuel_costs[-1]/gas_total*100:.0f}% fuel',
                     'showarrow': False,
-                    'font': {'size': 10, 'color': COLORS['gas']}
+                    'font': {'size': 11, 'color': COLORS['gas']}
                 },
                 {
                     'x': 'Solar',
-                    'y': capex_costs[0] + 5,
-                    'text': f'{capex_costs[0]/(capex_costs[0]+om_costs[0])*100:.0f}% capex',
+                    'y': solar_total + 5,
+                    'text': f'{capex_costs[0]/solar_total*100:.0f}% capex',
                     'showarrow': False,
-                    'font': {'size': 10, 'color': COLORS['solar']}
+                    'font': {'size': 11, 'color': '#333'}
                 }
             ]
         }
@@ -2185,10 +2133,11 @@ def generate_cleanfirm_comparison(zone_data, zone='California'):
 
 def generate_tech_lcoe_comparison(zone_data, zone='California', cost_settings=None):
     """
-    Show standalone LCOE of each technology.
+    Show standalone LCOE of each technology with low/high ranges.
     This is the starting point of the mystery: solar is cheapest!
+    Shows error bars for cost uncertainty based on low/default/high scenarios.
     """
-    print("Generating technology LCOE comparison...")
+    print("Generating technology LCOE comparison with ranges...")
 
     if cost_settings is None:
         cost_settings = DEFAULT_COSTS.copy()
@@ -2199,66 +2148,103 @@ def generate_tech_lcoe_comparison(zone_data, zone='California', cost_settings=No
     # Capital recovery factor
     crf = (discount_rate * (1 + discount_rate)**lifetime) / ((1 + discount_rate)**lifetime - 1)
 
-    # Calculate LCOE for each technology
-    techs = {
+    # Cost scenarios: low, default, high (from multi_test.py presets)
+    cost_scenarios = {
         'Solar': {
-            'capex': cost_settings.get('solar', 1000),
-            'fixed_om': cost_settings.get('solar_fixed_om', 15),
+            'capex': {'low': 500, 'default': 1000, 'high': 1500},
+            'fixed_om': 15,
             'var_om': 0,
             'fuel': 0,
             'cf': 0.25,
             'color': COLORS['solar']
         },
         'Wind': {
-            'capex': cost_settings.get('wind', 1200),
-            'fixed_om': cost_settings.get('wind_fixed_om', 40),
+            'capex': {'low': 700, 'default': 1200, 'high': 1800},
+            'fixed_om': 40,
             'var_om': 0,
             'fuel': 0,
             'cf': 0.35,
             'color': COLORS['wind']
         },
         'Gas': {
-            'capex': cost_settings.get('gas_capex', 1200),
+            'capex': {'low': 1200, 'default': 1200, 'high': 2000},
             'fixed_om': 20,
             'var_om': 2,
-            'fuel': cost_settings.get('gas_price', 4) * cost_settings.get('gas_heat_rate', 7.5),
+            'fuel': {'low': 4 * 7.5, 'default': 4 * 7.5, 'high': 7 * 7.5},  # gas_price * heat_rate
             'cf': 0.50,
             'color': COLORS['gas']
         },
         'Clean Firm': {
-            'capex': cost_settings.get('clean_firm', 5000),
+            'capex': {'low': 3000, 'default': 5000, 'high': 7500},
             'fixed_om': 60,
             'var_om': 10,
-            'fuel': cost_settings.get('clean_firm_fuel', 20),
+            'fuel': 20,
             'cf': 0.85,
             'color': COLORS['clean_firm']
         }
     }
 
+    def calc_lcoe(capex, fixed_om, var_om, fuel, cf):
+        annual_gen = cf * 8760
+        capex_mwh = (capex * crf * 1000) / annual_gen
+        om_mwh = (fixed_om * 1000) / annual_gen + var_om
+        return capex_mwh + om_mwh + fuel
+
     names = []
-    lcoes = []
+    lcoes_default = []
+    lcoes_low = []
+    lcoes_high = []
     colors = []
 
-    for name, tech in techs.items():
-        annual_gen = tech['cf'] * 8760
-        capex_mwh = (tech['capex'] * crf * 1000) / annual_gen
-        om_mwh = (tech['fixed_om'] * 1000) / annual_gen + tech['var_om']
-        fuel_mwh = tech['fuel']
-        lcoe = capex_mwh + om_mwh + fuel_mwh
+    for name, tech in cost_scenarios.items():
+        capex = tech['capex']
+        fuel = tech['fuel'] if isinstance(tech['fuel'], dict) else {'low': tech['fuel'], 'default': tech['fuel'], 'high': tech['fuel']}
+
+        lcoe_low = calc_lcoe(capex['low'], tech['fixed_om'], tech['var_om'], fuel['low'], tech['cf'])
+        lcoe_default = calc_lcoe(capex['default'], tech['fixed_om'], tech['var_om'], fuel['default'], tech['cf'])
+        lcoe_high = calc_lcoe(capex['high'], tech['fixed_om'], tech['var_om'], fuel['high'], tech['cf'])
 
         names.append(name)
-        lcoes.append(lcoe)
+        lcoes_default.append(lcoe_default)
+        lcoes_low.append(lcoe_low)
+        lcoes_high.append(lcoe_high)
         colors.append(tech['color'])
-        print(f"  {name}: ${lcoe:.0f}/MWh")
+        print(f"  {name}: ${lcoe_low:.0f} - ${lcoe_default:.0f} - ${lcoe_high:.0f}/MWh")
+
+    # Calculate error bar values (asymmetric: from default to low/high)
+    error_minus = [d - l for d, l in zip(lcoes_default, lcoes_low)]
+    error_plus = [h - d for d, h in zip(lcoes_default, lcoes_high)]
+
+    # Build annotations for range labels (to the right of each bar)
+    range_annotations = []
+    for i, name in enumerate(names):
+        # Range label to the right of the bar, slightly above bar top
+        range_annotations.append({
+            'x': i,
+            'y': lcoes_default[i] + 8,
+            'xanchor': 'left',
+            'xshift': 20,
+            'text': f'${lcoes_low[i]:.0f}-${lcoes_high[i]:.0f}',
+            'showarrow': False,
+            'font': {'size': 11, 'color': '#666'}
+        })
 
     chart = {
         'data': [{
             'x': names,
-            'y': lcoes,
+            'y': lcoes_default,
             'type': 'bar',
             'marker': {'color': colors},
-            'text': [f'${l:.0f}' for l in lcoes],
-            'textposition': 'outside'
+            'hoverinfo': 'skip',
+            'error_y': {
+                'type': 'data',
+                'symmetric': False,
+                'array': error_plus,
+                'arrayminus': error_minus,
+                'color': '#666',
+                'thickness': 2,
+                'width': 6
+            }
         }],
         'layout': {
             **LAYOUT_DEFAULTS,
@@ -2267,17 +2253,30 @@ def generate_tech_lcoe_comparison(zone_data, zone='California', cost_settings=No
                 'title': 'LCOE ($/MWh)',
                 'showgrid': True,
                 'gridcolor': 'rgba(0,0,0,0.1)',
-                'range': [0, max(lcoes) * 1.2]
+                'range': [0, max(lcoes_high) * 1.2]
             },
             'xaxis': {'showgrid': False},
             'showlegend': False,
-            'annotations': [{
-                'x': 'Solar',
-                'y': lcoes[0] + 8,
-                'text': 'Cheapest!',
-                'showarrow': False,
-                'font': {'size': 11, 'color': COLORS['solar'], 'weight': 'bold'}
-            }]
+            'annotations': [
+                # "Cheapest!" label above solar's high range
+                {
+                    'x': 'Solar',
+                    'y': lcoes_high[0] + 12,
+                    'text': 'Cheapest!',
+                    'showarrow': False,
+                    'font': {'size': 12, 'color': COLORS['solar'], 'weight': 'bold'}
+                },
+                # Footer note
+                {
+                    'x': 0.5,
+                    'y': -0.15,
+                    'xref': 'paper',
+                    'yref': 'paper',
+                    'text': 'Error bars show low/high cost scenarios',
+                    'showarrow': False,
+                    'font': {'size': 10, 'color': '#666'}
+                }
+            ] + range_annotations
         }
     }
 
@@ -2706,7 +2705,17 @@ def generate_lcoe_breakdown(zone_data, zone='California', cost_settings=None):
         'layout': {
             **LAYOUT_DEFAULTS,
             'barmode': 'stack',
-            'title': f'LCOE Breakdown at {target}% Clean',
+            'title': {
+                'text': f'LCOE Breakdown at {target}% Clean',
+                'y': 0.95,
+                'yanchor': 'top'
+            },
+            'margin': {
+                'l': 60,
+                'r': 40,
+                't': 80,
+                'b': 60
+            },
             'yaxis': {
                 'title': 'LCOE Component ($/MWh)',
                 'showgrid': True,
@@ -2719,15 +2728,6 @@ def generate_lcoe_breakdown(zone_data, zone='California', cost_settings=None):
                 'text': f'Total: ${total:.0f}/MWh',
                 'showarrow': False,
                 'font': {'size': 12, 'weight': 'bold'}
-            }, {
-                'x': '95% Clean System',
-                'y': solar_lcoe + wind_lcoe + storage_lcoe + cf_lcoe + gas_lcoe/2,
-                'text': f'Gas: only ${gas_lcoe:.0f}<br>({gas_lcoe/total*100:.0f}%)',
-                'showarrow': True,
-                'arrowhead': 2,
-                'ax': 80,
-                'ay': 0,
-                'font': {'size': 10, 'color': COLORS['gas']}
             }]
         }
     }
@@ -2967,6 +2967,10 @@ def generate_gas_lcoe_impact(zone_data, zone='California', cost_settings=None):
     """
     Show that despite needing lots of gas capacity, gas contributes little to LCOE.
     Key insight: Gas operates few hours = low energy cost despite high capacity.
+
+    Creates a line chart with:
+    - Total System LCOE (black line)
+    - Gas Contribution to LCOE (red line with shaded area below)
     """
     print("Generating gas LCOE impact chart...")
 
@@ -2977,13 +2981,25 @@ def generate_gas_lcoe_impact(zone_data, zone='California', cost_settings=None):
     load_profile = profiles['load']
     annual_load = np.sum(load_profile)
 
-    targets = [70, 80, 90, 95, 99]
-    gas_caps = []
-    gas_energy_mwh = []
+    # More granular targets for smooth curve
+    targets = list(range(0, 101, 5))
     gas_lcoe_contribution = []
     total_lcoes = []
 
     for target in targets:
+        if target == 0:
+            # Gas-only system
+            gas_price = cost_settings.get('gas_price', 4)
+            heat_rate = cost_settings.get('gas_heat_rate', 7.5)
+            gas_capex = cost_settings.get('gas_capex', 1200)
+            # Gas LCOE = fuel + capacity costs
+            fuel_cost = gas_price * heat_rate  # $/MWh
+            gas_lcoe_total = fuel_cost + 35  # Approximate fixed costs
+            total_lcoes.append(gas_lcoe_total)
+            gas_lcoe_contribution.append(gas_lcoe_total)
+            print(f"  {target}%: Gas-only system, LCOE=${gas_lcoe_total:.1f}/MWh")
+            continue
+
         result = run_optimization(zone_data, zone, target, cost_settings)
 
         # Run simulation
@@ -3000,7 +3016,6 @@ def generate_gas_lcoe_impact(zone_data, zone='California', cost_settings=None):
 
         gas_cap = np.max(gas_gen)
         gas_mwh = np.sum(gas_gen)
-        gas_cf = gas_mwh / (gas_cap * 8760) * 100 if gas_cap > 0 else 0
 
         # Approximate gas LCOE contribution
         gas_capex = cost_settings.get('gas_capex', 1200)
@@ -3013,52 +3028,71 @@ def generate_gas_lcoe_impact(zone_data, zone='California', cost_settings=None):
         gas_total_cost = gas_annual_cost + gas_fuel_cost
         gas_lcoe = gas_total_cost / annual_load * 1000  # $/MWh
 
-        gas_caps.append(gas_cap)
-        gas_energy_mwh.append(gas_mwh)
         gas_lcoe_contribution.append(gas_lcoe)
         total_lcoes.append(result['lcoe'])
 
-        print(f"  {target}%: Gas {gas_cap:.0f} MW, CF={gas_cf:.1f}%, "
-              f"contributes ${gas_lcoe:.1f}/MWh of ${result['lcoe']:.1f}/MWh total")
+        print(f"  {target}%: Gas contributes ${gas_lcoe:.1f}/MWh of ${result['lcoe']:.1f}/MWh total")
 
-    # Create grouped bar chart
+    # Create line chart with shaded area
     chart = {
         'data': [
+            # Total System LCOE - black line with markers
             {
-                'x': [f"{t}%" for t in targets],
+                'x': targets,
                 'y': total_lcoes,
-                'type': 'bar',
+                'type': 'scatter',
+                'mode': 'lines+markers',
                 'name': 'Total System LCOE',
-                'marker': {'color': COLORS['wind']}
+                'line': {'color': '#000000', 'width': 2},
+                'marker': {'size': 6, 'color': '#000000'}
             },
+            # Gas Contribution to LCOE - red line with shaded fill
             {
-                'x': [f"{t}%" for t in targets],
+                'x': targets,
                 'y': gas_lcoe_contribution,
-                'type': 'bar',
+                'type': 'scatter',
+                'mode': 'lines+markers',
                 'name': 'Gas Contribution to LCOE',
-                'marker': {'color': COLORS['gas']}
+                'line': {'color': '#ea4335', 'width': 2},
+                'marker': {'size': 6, 'color': '#ea4335'},
+                'fill': 'tozeroy',
+                'fillcolor': 'rgba(234, 67, 53, 0.2)'
             }
         ],
         'layout': {
             **LAYOUT_DEFAULTS,
-            'barmode': 'group',
             'xaxis': {
-                'title': 'Clean Energy Target',
-                'showgrid': False
+                'title': 'Clean Energy Target (%)',
+                'showgrid': True,
+                'gridcolor': 'rgba(0,0,0,0.1)',
+                'range': [0, 100],
+                'dtick': 20
             },
             'yaxis': {
                 'title': 'LCOE ($/MWh)',
                 'showgrid': True,
-                'gridcolor': 'rgba(0,0,0,0.1)'
+                'gridcolor': 'rgba(0,0,0,0.1)',
+                'range': [0, max(total_lcoes) * 1.1]
             },
             'annotations': [
                 {
-                    'x': 0.5,
-                    'y': -0.15,
-                    'xref': 'paper',
-                    'yref': 'paper',
-                    'text': 'Gas provides reliability but contributes only ~$5-15/MWh to total LCOE',
-                    'showarrow': False,
+                    'x': 20,
+                    'y': gas_lcoe_contribution[4] if len(gas_lcoe_contribution) > 4 else 40,
+                    'text': 'Gas dominates<br>at low clean %',
+                    'showarrow': True,
+                    'arrowhead': 2,
+                    'ax': 0,
+                    'ay': -40,
+                    'font': {'size': 11, 'color': '#333'}
+                },
+                {
+                    'x': 90,
+                    'y': gas_lcoe_contribution[18] if len(gas_lcoe_contribution) > 18 else 15,
+                    'text': 'Gas < $15/MWh<br>but capacity still needed',
+                    'showarrow': True,
+                    'arrowhead': 2,
+                    'ax': 0,
+                    'ay': 40,
                     'font': {'size': 11, 'color': '#333'}
                 }
             ]

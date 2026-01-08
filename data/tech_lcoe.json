@@ -22,13 +22,26 @@
           "#ff7900"
         ]
       },
-      "text": [
-        "$50",
-        "$50",
-        "$62",
-        "$101"
-      ],
-      "textposition": "outside"
+      "hoverinfo": "skip",
+      "error_y": {
+        "type": "data",
+        "symmetric": false,
+        "array": [
+          21.550896288414535,
+          18.47219681864103,
+          39.74071703073163,
+          31.692494541786104
+        ],
+        "arrayminus": [
+          21.550896288414535,
+          15.393497348867527,
+          0.0,
+          25.353995633428866
+        ],
+        "color": "#666",
+        "thickness": 2,
+        "width": 6
+      }
     }
   ],
   "layout": {
@@ -59,7 +72,7 @@
       "gridcolor": "rgba(0,0,0,0.1)",
       "range": [
         0,
-        121.7316081734534
+        159.7626016235967
       ]
     },
     "xaxis": {
@@ -69,13 +82,73 @@
     "annotations": [
       {
         "x": "Solar",
-        "y": 57.951107645322224,
+        "y": 83.50200393373676,
         "text": "Cheapest!",
         "showarrow": false,
         "font": {
-          "size": 11,
+          "size": 12,
           "color": "#fbbc05",
           "weight": "bold"
+        }
+      },
+      {
+        "x": 0.5,
+        "y": -0.15,
+        "xref": "paper",
+        "yref": "paper",
+        "text": "Error bars show low/high cost scenarios",
+        "showarrow": false,
+        "font": {
+          "size": 10,
+          "color": "#666"
+        }
+      },
+      {
+        "x": 0,
+        "y": 57.951107645322224,
+        "xanchor": "left",
+        "xshift": 20,
+        "text": "$28-$72",
+        "showarrow": false,
+        "font": {
+          "size": 11,
+          "color": "#666"
+        }
+      },
+      {
+        "x": 1,
+        "y": 57.99070805345949,
+        "xanchor": "left",
+        "xshift": 20,
+        "text": "$35-$68",
+        "showarrow": false,
+        "font": {
+          "size": 11,
+          "color": "#666"
+        }
+      },
+      {
+        "x": 2,
+        "y": 70.42728559175954,
+        "xanchor": "left",
+        "xshift": 20,
+        "text": "$62-$102",
+        "showarrow": false,
+        "font": {
+          "size": 11,
+          "color": "#666"
+        }
+      },
+      {
+        "x": 3,
+        "y": 109.44300681121116,
+        "xanchor": "left",
+        "xshift": 20,
+        "text": "$76-$133",
+        "showarrow": false,
+        "font": {
+          "size": 11,
+          "color": "#666"
         }
       }
     ]

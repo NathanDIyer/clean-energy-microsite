@@ -396,3 +396,84 @@ footer .footer-cta a:hover {
 .js-plotly-plot .plotly .modebar {
     right: 10px !important;
 }
+
+/* Assumptions Dropdown */
+.assumptions-dropdown {
+    margin: calc(var(--spacing-unit) * 2) 0;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-surface);
+}
+
+.assumptions-dropdown summary {
+    padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 2);
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--spacing-unit) * 1);
+}
+
+.assumptions-dropdown summary::-webkit-details-marker {
+    display: none;
+}
+
+.assumptions-dropdown summary::before {
+    content: '▶';
+    font-size: 0.7rem;
+    transition: transform 0.2s ease;
+}
+
+.assumptions-dropdown[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.assumptions-dropdown summary:hover {
+    color: var(--color-text);
+}
+
+.assumptions-content {
+    padding: calc(var(--spacing-unit) * 2);
+    border-top: 1px solid var(--color-border);
+}
+
+.assumptions-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.assumptions-table th,
+.assumptions-table td {
+    padding: calc(var(--spacing-unit) * 1) calc(var(--spacing-unit) * 1.5);
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.assumptions-table th {
+    font-weight: 500;
+    color: var(--color-text);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.assumptions-table td {
+    color: var(--color-text-secondary);
+}
+
+.assumptions-table td:first-child {
+    font-weight: 500;
+    color: var(--color-text);
+}
+
+.assumptions-table tr:last-child td {
+    border-bottom: none;
+}
+
+.assumptions-note {
+    margin-top: calc(var(--spacing-unit) * 2);
+    margin-bottom: 0;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+}
