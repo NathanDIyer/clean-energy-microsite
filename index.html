@@ -143,8 +143,10 @@
             <h2>The Cost of Going Solar-Only</h2>
             <p>What if we tried to reach high clean targets with <em>only</em> solar and storage? Each line shows a different storage duration. Watch the cost explode as you approach each ceiling.</p>
             <div id="chart-solar-storage-lcoe" class="chart-container"></div>
+            <p>But what if storage gets cheaper? Watch how falling battery costs bend the curve:</p>
+            <div id="chart-storage-cost-sensitivity" class="chart-container"></div>
             <div class="callout warning">
-                <strong>The overbuild trap:</strong> To reach 80% clean with solar+5h storage costs over $150/MWh—triple what an optimized portfolio achieves. Each storage hour adds cost but only raises the ceiling by ~6 points. This is why diversity matters.
+                <strong>The overbuild trap:</strong> Even at $50/kWh storage, solar-only systems still cost more than diversified portfolios at high clean targets. Cheap storage helps, but diversity still wins.
             </div>
         </section>
 
@@ -158,14 +160,12 @@
             </div>
         </section>
 
-        <!-- 2.4 Declining Marginal Value -->
-        <section id="marginal-energy" class="section">
+        <!-- 2.4 Reliability Has Value (moved from Part 3) -->
+        <section id="elcc" class="section">
             <h2>Why Cheap Gets Expensive</h2>
-            <p>This is the key insight: each additional MW of solar produces <em>less useful energy</em> than the last, because more of it gets curtailed. Clean firm power, by contrast, maintains its value.</p>
-            <div id="chart-marginal-energy" class="chart-container"></div>
-            <div class="callout">
-                <strong>The hidden cost:</strong> Solar's $50/MWh LCOE assumes 100% utilization. But the 500th MW of solar might only deliver 10% of its potential energy. That makes its <em>effective</em> LCOE five times higher.
-            </div>
+            <p>Beyond energy value, there's <strong>capacity value</strong>: can you count on a resource to deliver power when you need it most? Each resource has a ceiling on how much clean energy it can provide <em>on its own</em>:</p>
+            <div id="chart-elcc" class="chart-container"></div>
+            <p class="insight">Solar alone maxes out at ~50%. Wind reaches ~70%. Only clean firm power can get you to 100%—with nearly linear returns.</p>
             <p class="transition-text">But there's a second problem. Even if we could use all the energy, we still need <strong>reliability</strong>...</p>
         </section>
 
@@ -178,15 +178,7 @@
             <p class="part-subtitle">Cheap energy you can't count on has limited value</p>
         </div>
 
-        <!-- 3.1 Reliability Has Value -->
-        <section id="elcc" class="section">
-            <h2>Reliability Has Value</h2>
-            <p>Beyond energy value, there's <strong>capacity value</strong>: can you count on a resource to deliver power when you need it most? Each resource has a ceiling on how much clean energy it can provide <em>on its own</em>:</p>
-            <div id="chart-elcc" class="chart-container"></div>
-            <p class="insight">Solar alone maxes out at ~50%. Wind reaches ~70%. Only clean firm power can get you to 100%—with nearly linear returns.</p>
-        </section>
-
-        <!-- 3.2 Can Storage Save Solar? -->
+        <!-- 3.1 Can Storage Save Solar? -->
         <section id="elcc-solar-storage" class="section">
             <h2>Can Storage Save Solar?</h2>
             <p>Storage shifts solar energy from midday (when abundant) to evening (when needed). Does it solve the reliability problem?</p>
@@ -313,15 +305,15 @@
             </div>
         </section>
 
-        <!-- 5.4 Clean Firm Technologies -->
+        <!-- 5.4 Financing Impact on Different Technologies -->
         <section id="cleanfirm-tech" class="section">
-            <h2>Clean Firm Technology Paths</h2>
-            <p>Not all clean firm technologies are equal. Their economics vary dramatically with financing costs:</p>
+            <h2>Financing Impacts Technologies Differently</h2>
+            <p>Different technologies have different cost structures. Capital-intensive technologies (solar, wind, nuclear, geothermal) are very sensitive to financing costs, while fuel-heavy technologies (gas) are less sensitive but exposed to volatile fuel prices:</p>
             <div id="chart-cleanfirm-tech" class="chart-container"></div>
             <ul class="region-notes">
-                <li><strong>Geothermal:</strong> Zero fuel = 100% capex. Cheapest at low discount rates, but very sensitive to financing.</li>
-                <li><strong>Nuclear:</strong> High capex, low fuel. Expensive but predictable.</li>
-                <li><strong>Hydrogen:</strong> Low capex, high fuel. Less sensitive to financing, higher floor cost.</li>
+                <li><strong>Solar/Wind:</strong> Nearly 100% upfront cost. Steep LCOE increase with higher discount rates.</li>
+                <li><strong>Nuclear/Geothermal:</strong> High capex, minimal fuel. Very sensitive to financing conditions.</li>
+                <li><strong>Gas:</strong> Low capex, high fuel. Flat slope—financing matters less, but fuel prices matter more.</li>
             </ul>
         </section>
 

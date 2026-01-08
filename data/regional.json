@@ -7,15 +7,21 @@
         "Florida"
       ],
       "y": [
-        350.4,
-        43.8,
-        788.4
+        49.300667871367054,
+        3.598550700257331,
+        79.55015157477345
       ],
       "type": "bar",
       "name": "Clean Firm",
       "marker": {
         "color": "#ff7900"
-      }
+      },
+      "hovertemplate": "%{x}<br>Clean Firm: %{customdata:.1f}%<extra></extra>",
+      "customdata": [
+        49.39350046646372,
+        4.313723580130907,
+        73.50669575906969
+      ]
     },
     {
       "x": [
@@ -24,15 +30,21 @@
         "Florida"
       ],
       "y": [
-        5.378666100982277,
-        8.822548552320283,
-        29.164261840717124
+        1.6543347942033269,
+        1.6081830879111272,
+        5.215957957253439
       ],
       "type": "bar",
       "name": "Storage (shifted)",
       "marker": {
         "color": "#673ab7"
-      }
+      },
+      "hovertemplate": "%{x}<br>Storage: %{customdata:.1f}%<extra></extra>",
+      "customdata": [
+        1.6574498877453718,
+        1.9277920155450035,
+        4.819699611703964
+      ]
     },
     {
       "x": [
@@ -41,15 +53,21 @@
         "Florida"
       ],
       "y": [
-        522.5136349999999,
-        654.3762750000001,
-        0.0
+        27.589628264576135,
+        52.80730357727221,
+        3.9503533940201674
       ],
       "type": "bar",
       "name": "Wind",
       "marker": {
         "color": "#4285f4"
-      }
+      },
+      "hovertemplate": "%{x}<br>Wind: %{customdata:.1f}%<extra></extra>",
+      "customdata": [
+        27.641579219809348,
+        63.30218180005653,
+        3.650243517161717
+      ]
     },
     {
       "x": [
@@ -58,15 +76,21 @@
         "Florida"
       ],
       "y": [
-        240.82962,
-        269.607635,
-        144.5237925
+        21.267424109038863,
+        25.40694762377663,
+        19.505176957633996
       ],
       "type": "bar",
       "name": "Solar",
       "marker": {
         "color": "#fbbc05"
-      }
+      },
+      "hovertemplate": "%{x}<br>Solar: %{customdata:.1f}%<extra></extra>",
+      "customdata": [
+        21.307470425981563,
+        30.45630260426755,
+        18.023361112064627
+      ]
     }
   ],
   "layout": {
@@ -79,31 +103,35 @@
     "margin": {
       "l": 60,
       "r": 40,
-      "t": 40,
+      "t": 80,
       "b": 60
     },
     "hovermode": "x unified",
     "legend": {
       "orientation": "h",
       "yanchor": "bottom",
-      "y": 1.02,
+      "y": 1.08,
       "xanchor": "center",
       "x": 0.5
     },
     "barmode": "stack",
-    "title": "95% Clean Energy Target",
+    "title": {
+      "text": "95% Clean Energy Target",
+      "y": 0.98,
+      "yanchor": "top"
+    },
     "xaxis": {
       "showgrid": false
     },
     "yaxis": {
-      "title": "Annual Energy (GWh)",
+      "title": "LCOE ($/MWh)",
       "showgrid": true,
       "gridcolor": "rgba(0,0,0,0.1)"
     },
     "annotations": [
       {
         "x": "California",
-        "y": 1129.1219211009823,
+        "y": 102.81205503918538,
         "text": "$100/MWh",
         "showarrow": false,
         "font": {
@@ -114,7 +142,7 @@
       },
       {
         "x": "Texas",
-        "y": 986.6064585523204,
+        "y": 86.4209849892173,
         "text": "$83/MWh",
         "showarrow": false,
         "font": {
@@ -125,8 +153,8 @@
       },
       {
         "x": "Florida",
-        "y": 972.0880543407171,
-        "text": "$109/MWh",
+        "y": 111.22163988368106,
+        "text": "$108/MWh",
         "showarrow": false,
         "font": {
           "size": 12,

@@ -5,7 +5,7 @@
         "95% Clean System"
       ],
       "y": [
-        10.775448144207267
+        11.294618671516078
       ],
       "name": "Solar",
       "type": "bar",
@@ -18,7 +18,7 @@
         "95% Clean System"
       ],
       "y": [
-        22.62844110283526
+        17.35285407697291
       ],
       "name": "Wind",
       "type": "bar",
@@ -31,7 +31,7 @@
         "95% Clean System"
       ],
       "y": [
-        0.808158610815545
+        2.946624432463151
       ],
       "name": "Storage",
       "type": "bar",
@@ -44,7 +44,7 @@
         "95% Clean System"
       ],
       "y": [
-        29.55089628841453
+        57.74394978948852
       ],
       "name": "Clean Firm",
       "type": "bar",
@@ -57,7 +57,7 @@
         "95% Clean System"
       ],
       "y": [
-        13.622327086457764
+        13.94713738941798
       ],
       "name": "Gas Backup",
       "type": "bar",
@@ -76,7 +76,7 @@
     "margin": {
       "l": 60,
       "r": 40,
-      "t": 40,
+      "t": 80,
       "b": 60
     },
     "hovermode": "x unified",
@@ -88,7 +88,11 @@
       "x": 0.5
     },
     "barmode": "stack",
-    "title": "LCOE Breakdown at 95% Clean",
+    "title": {
+      "text": "LCOE Breakdown at 95% Clean",
+      "y": 0.95,
+      "yanchor": "top"
+    },
     "yaxis": {
       "title": "LCOE Component ($/MWh)",
       "showgrid": true,
@@ -100,25 +104,12 @@
     "annotations": [
       {
         "x": "95% Clean System",
-        "y": 82.38527123273036,
-        "text": "Total: $77/MWh",
+        "y": 108.28518435985863,
+        "text": "Total: $103/MWh",
         "showarrow": false,
         "font": {
           "size": 12,
           "weight": "bold"
-        }
-      },
-      {
-        "x": "95% Clean System",
-        "y": 70.57410768950149,
-        "text": "Gas: only $14<br>(18%)",
-        "showarrow": true,
-        "arrowhead": 2,
-        "ax": 80,
-        "ay": 0,
-        "font": {
-          "size": 10,
-          "color": "#ea4335"
         }
       }
     ]

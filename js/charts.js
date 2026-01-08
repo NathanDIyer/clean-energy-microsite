@@ -15,6 +15,7 @@ const CHARTS = {
     'chart-solar-storage-ceiling': 'solar_storage_ceiling.json',
     'chart-wind-storage-ceiling': 'wind_storage_ceiling.json',
     'chart-solar-storage-lcoe': 'solar_storage_lcoe.json',
+    'chart-storage-cost-sensitivity': 'storage_cost_sensitivity.json',
     'chart-effective-lcoe': 'effective_lcoe.json',
     'chart-marginal-energy': 'marginal_energy.json',
 

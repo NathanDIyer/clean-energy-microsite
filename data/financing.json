@@ -8,10 +8,10 @@
         "Both\n(4%, 30% ITC)"
       ],
       "y": [
-        100.36224997337844,
-        84.15590653004102,
-        85.59445449339914,
-        73.15833843112314
+        99.81205503918538,
+        84.19993811664801,
+        85.48908734201706,
+        73.62781958259853
       ],
       "type": "bar",
       "marker": {
@@ -25,8 +25,8 @@
       "text": [
         "$100",
         "$84",
-        "$86",
-        "$73"
+        "$85",
+        "$74"
       ],
       "textposition": "outside"
     }
@@ -59,7 +59,7 @@
       "gridcolor": "rgba(0,0,0,0.1)",
       "range": [
         0,
-        115.41658746938519
+        114.78386329506318
       ]
     },
     "xaxis": {
@@ -72,7 +72,7 @@
         "y": -0.2,
         "xref": "paper",
         "yref": "paper",
-        "text": "ITC saves $16/MWh | Lower cost of capital saves $15/MWh",
+        "text": "ITC saves $16/MWh | Lower cost of capital saves $14/MWh",
         "showarrow": false,
         "font": {
           "size": 12,
