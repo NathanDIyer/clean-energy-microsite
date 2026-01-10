@@ -5660,11 +5660,11 @@
         "borderpad": 4
       },
       {
-        "x": 120,
-        "y": 160,
+        "x": 41,
+        "y": 145,
         "xref": "x",
         "yref": "y",
-        "text": "Peak",
+        "text": "Peak Gas",
         "showarrow": true,
         "arrowhead": 2,
         "ax": 0,
