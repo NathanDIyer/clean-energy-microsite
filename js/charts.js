@@ -35,7 +35,8 @@ const CHARTS = {
 
     // Part 5: Testing Our Understanding
     'chart-regional': 'regional.json',
-    'chart-gas-crossover': 'gas_crossover.json',
+    'chart-gas-price-sensitivity': 'gas_price_sensitivity.json',
+    'chart-gas-crossover-points': 'gas_crossover_points.json',
     'chart-no-cleanfirm': 'no_cleanfirm.json',
     'chart-cf-cost-80pct': 'cf_cost_sensitivity_80pct.json',
     'chart-cf-cost-90pct': 'cf_cost_sensitivity_90pct.json',

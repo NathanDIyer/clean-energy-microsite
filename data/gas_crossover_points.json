@@ -1,0 +1,158 @@
+{
+  "data": [
+    {
+      "x": [
+        25,
+        50,
+        70,
+        80,
+        90,
+        95,
+        99
+      ],
+      "y": [
+        2.6045005174086375,
+        2.9169006893170275,
+        3.168863703293659,
+        3.5393947795991685,
+        4.431356981414898,
+        5.590019238257452,
+        7.902739116952384
+      ],
+      "type": "scatter",
+      "mode": "lines+markers",
+      "name": "Low Cost Renewables",
+      "line": {
+        "color": "#34a853",
+        "width": 2,
+        "dash": "dash"
+      },
+      "marker": {
+        "size": 8,
+        "color": "#34a853"
+      }
+    },
+    {
+      "x": [
+        25,
+        50,
+        70,
+        80,
+        90,
+        95,
+        99
+      ],
+      "y": [
+        4.731360259329094,
+        5.167969919808154,
+        5.809756968299375,
+        6.469691539777648,
+        7.931966868568217,
+        8.99705772023791,
+        10.13018418135157
+      ],
+      "type": "scatter",
+      "mode": "lines+markers",
+      "name": "Medium Cost Renewables",
+      "line": {
+        "color": "#4285f4",
+        "width": 3,
+        "dash": "solid"
+      },
+      "marker": {
+        "size": 8,
+        "color": "#4285f4"
+      }
+    },
+    {
+      "x": [
+        25,
+        50,
+        70,
+        80,
+        90,
+        95,
+        99
+      ],
+      "y": [
+        7.38588431197492,
+        7.6852072463808625,
+        8.401501241354334,
+        8.781332146196476,
+        9.40174261069238,
+        10.184963885339634,
+        11.613858753446758
+      ],
+      "type": "scatter",
+      "mode": "lines+markers",
+      "name": "High Cost Renewables",
+      "line": {
+        "color": "#673ab7",
+        "width": 2,
+        "dash": "dash"
+      },
+      "marker": {
+        "size": 8,
+        "color": "#673ab7"
+      }
+    }
+  ],
+  "layout": {
+    "title": {
+      "text": "Gas Price Crossover Points by Clean Match Target",
+      "font": {
+        "family": "Google Sans, -apple-system, sans-serif",
+        "size": 18,
+        "color": "#202124"
+      }
+    },
+    "xaxis": {
+      "title": "Clean Energy Target (%)",
+      "gridcolor": "#e8eaed",
+      "dtick": 10
+    },
+    "yaxis": {
+      "title": "Crossover Gas Price ($/MMBtu)",
+      "gridcolor": "#e8eaed",
+      "rangemode": "tozero"
+    },
+    "font": {
+      "family": "Google Sans, -apple-system, sans-serif",
+      "size": 12
+    },
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "white",
+    "margin": {
+      "l": 80,
+      "r": 40,
+      "t": 80,
+      "b": 80
+    },
+    "hovermode": "x unified",
+    "legend": {
+      "orientation": "v",
+      "yanchor": "top",
+      "y": 0.98,
+      "xanchor": "left",
+      "x": 0.02,
+      "bgcolor": "rgba(255, 255, 255, 0.9)",
+      "bordercolor": "#e8eaed",
+      "borderwidth": 1
+    },
+    "annotations": [
+      {
+        "text": "Shows minimum gas price for clean energy to be cost-competitive",
+        "xref": "paper",
+        "yref": "paper",
+        "x": 0.5,
+        "y": -0.15,
+        "showarrow": false,
+        "font": {
+          "size": 11,
+          "color": "#5f6368"
+        },
+        "xanchor": "center"
+      }
+    ]
+  }
+}

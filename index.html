@@ -366,13 +366,24 @@
             </ul>
         </section>
 
-        <!-- 5.2 Gas Price Crossover -->
-        <section id="gas-crossover" class="section">
+        <!-- 5.2 Gas Price Sensitivity and Hedging -->
+        <section id="gas-price-analysis" class="section">
             <h2>The Gas Price Hedge</h2>
-            <p>At what gas price does clean energy become cheaper than gas-only? And what happens during price spikes?</p>
-            <div id="chart-gas-crossover" class="chart-container"></div>
+            <p>Natural gas prices are volatile. How exposed is your system to fuel price fluctuations? And at what gas price does clean energy become cost-competitive?</p>
+
+            <h3>Gas Price Exposure Decreases as You Go Cleaner</h3>
+            <p>A gas-only system is fully exposed to fuel price volatility. But as you add more clean energy, your sensitivity to gas prices drops dramatically:</p>
+            <div id="chart-gas-price-sensitivity" class="chart-container"></div>
             <div class="callout">
-                <strong>Hidden value:</strong> At $8+/MMBtu gas (seen in 2022), 90% clean becomes cost-competitive. This is equivalent to a ~$75/ton carbon price—well above current US policy levels. High-clean systems are <em>insulated</em> from price spikes—a 95% clean system barely moves when gas prices double.
+                <strong>The gas hedge value:</strong> A gas-only system sees LCOE swing from $50/MWh at $2/MMBtu to $125/MWh at $12/MMBtu—a 150% increase. A 90% clean system? Only $90/MWh to $100/MWh—barely 10% change. <strong>Going clean is a hedge against fuel price volatility.</strong>
+            </div>
+
+            <h3>When Does Clean Energy Become Cheaper?</h3>
+            <p>The crossover point depends on both gas prices <em>and</em> renewable costs. Cheap renewables make clean energy competitive at lower gas prices. Expensive renewables need higher gas prices to compete:</p>
+            <div id="chart-gas-crossover-points" class="chart-container"></div>
+            <p class="insight">At 70% clean with medium-cost renewables, clean energy becomes competitive at ~$6/MMBtu. At 90% clean, you need ~$8/MMBtu. But if renewables get cheap, these thresholds drop significantly—making clean energy competitive even at lower gas prices.</p>
+            <div class="callout">
+                <strong>Real-world context:</strong> Gas prices hit $8-9/MMBtu during the 2022 energy crisis. At those prices, 90% clean systems were already cost-competitive with gas-only—equivalent to an implicit carbon price of $75/ton, well above current US policy levels.
             </div>
         </section>
 
