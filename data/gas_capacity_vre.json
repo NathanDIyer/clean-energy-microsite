@@ -1,0 +1,144 @@
+{
+  "data": [
+    {
+      "x": [
+        0,
+        5,
+        10,
+        15,
+        20,
+        25,
+        30,
+        35,
+        40,
+        45,
+        50,
+        55,
+        60,
+        65,
+        70,
+        75,
+        80,
+        85,
+        90,
+        95,
+        98,
+        99,
+        100
+      ],
+      "y": [
+        166.4234185219396,
+        163.69019779944068,
+        160.58124799095023,
+        154.99541640033473,
+        152.82363399708248,
+        151.08281895950668,
+        148.9575929566306,
+        149.30903540866052,
+        150.86349778904014,
+        149.94930444396692,
+        149.20312419203958,
+        143.53163455858936,
+        142.78131915206507,
+        140.16589687807559,
+        140.4065907335047,
+        137.33362600813604,
+        136.06571750495038,
+        129.28784835108723,
+        121.33956993459647,
+        85.45418443723801,
+        59.437953637322394,
+        36.28099001063961,
+        0.07862542287774943
+      ],
+      "type": "scatter",
+      "mode": "lines+markers",
+      "name": "Gas Capacity Needed (MW)",
+      "line": {
+        "color": "#ea4335",
+        "width": 3
+      },
+      "marker": {
+        "size": 6
+      },
+      "fill": "tozeroy",
+      "fillcolor": "rgba(234, 67, 53, 0.2)"
+    }
+  ],
+  "layout": {
+    "font": {
+      "family": "Google Sans, -apple-system, sans-serif",
+      "size": 12
+    },
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "rgba(0,0,0,0)",
+    "margin": {
+      "l": 60,
+      "r": 40,
+      "t": 40,
+      "b": 60
+    },
+    "hovermode": "x unified",
+    "legend": {
+      "orientation": "h",
+      "yanchor": "bottom",
+      "y": 1.02,
+      "xanchor": "center",
+      "x": 0.5
+    },
+    "xaxis": {
+      "title": "Clean Energy Target (%)",
+      "showgrid": true,
+      "gridcolor": "rgba(0,0,0,0.1)",
+      "range": [
+        0,
+        100
+      ],
+      "dtick": 20
+    },
+    "yaxis": {
+      "title": "Gas Capacity Required (MW)",
+      "showgrid": true,
+      "gridcolor": "rgba(0,0,0,0.1)"
+    },
+    "shapes": [
+      {
+        "type": "line",
+        "x0": 0,
+        "x1": 100,
+        "y0": 171.17099374717836,
+        "y1": 171.17099374717836,
+        "line": {
+          "color": "#202124",
+          "width": 2,
+          "dash": "dash"
+        }
+      }
+    ],
+    "annotations": [
+      {
+        "x": 50,
+        "y": 176.17099374717836,
+        "text": "Peak Load: 171 MW",
+        "showarrow": false,
+        "font": {
+          "size": 10,
+          "color": "#202124"
+        }
+      },
+      {
+        "x": 95,
+        "y": 85.45418443723801,
+        "text": "~50% of peak<br>still needed at 95%",
+        "showarrow": true,
+        "arrowhead": 2,
+        "ax": -50,
+        "ay": -40,
+        "font": {
+          "size": 10,
+          "color": "#ea4335"
+        }
+      }
+    ]
+  }
+}

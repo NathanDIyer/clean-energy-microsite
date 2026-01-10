@@ -1,0 +1,136 @@
+{
+  "data": [
+    {
+      "x": [
+        80,
+        90,
+        100
+      ],
+      "y": [
+        null,
+        null,
+        1000
+      ],
+      "type": "scatter",
+      "mode": "lines+markers",
+      "name": "Low Cost Renewables",
+      "line": {
+        "color": "#34a853",
+        "width": 3
+      },
+      "marker": {
+        "size": 10,
+        "color": "#34a853"
+      }
+    },
+    {
+      "x": [
+        80,
+        90,
+        100
+      ],
+      "y": [
+        1000,
+        1000,
+        1000
+      ],
+      "type": "scatter",
+      "mode": "lines+markers",
+      "name": "Default Renewables",
+      "line": {
+        "color": "#4285f4",
+        "width": 3
+      },
+      "marker": {
+        "size": 10,
+        "color": "#4285f4"
+      }
+    },
+    {
+      "x": [
+        80,
+        90,
+        100
+      ],
+      "y": [
+        1000,
+        1000,
+        1000
+      ],
+      "type": "scatter",
+      "mode": "lines+markers",
+      "name": "High Cost Renewables",
+      "line": {
+        "color": "#ea4335",
+        "width": 3
+      },
+      "marker": {
+        "size": 10,
+        "color": "#ea4335"
+      }
+    }
+  ],
+  "layout": {
+    "title": {
+      "text": "Clean Firm Cost Threshold for 50%+ of Clean Capacity",
+      "font": {
+        "family": "Google Sans, -apple-system, sans-serif",
+        "size": 18,
+        "color": "#202124"
+      }
+    },
+    "xaxis": {
+      "title": "Clean Match Target (%)",
+      "gridcolor": "#e8eaed",
+      "tickvals": [
+        80,
+        90,
+        100
+      ]
+    },
+    "yaxis": {
+      "title": "Clean Firm Cost Threshold ($/kW)",
+      "gridcolor": "#e8eaed",
+      "tickformat": "$,.0f",
+      "rangemode": "tozero"
+    },
+    "font": {
+      "family": "Google Sans, -apple-system, sans-serif",
+      "size": 12
+    },
+    "paper_bgcolor": "rgba(0,0,0,0)",
+    "plot_bgcolor": "white",
+    "margin": {
+      "l": 80,
+      "r": 40,
+      "t": 80,
+      "b": 80
+    },
+    "hovermode": "x unified",
+    "legend": {
+      "orientation": "v",
+      "yanchor": "top",
+      "y": 0.98,
+      "xanchor": "left",
+      "x": 0.02,
+      "bgcolor": "rgba(255, 255, 255, 0.9)",
+      "bordercolor": "#e8eaed",
+      "borderwidth": 1
+    },
+    "annotations": [
+      {
+        "text": "Shows minimum CF cost needed for clean firm to exceed 50% of clean energy capacity",
+        "xref": "paper",
+        "yref": "paper",
+        "x": 0.5,
+        "y": -0.15,
+        "showarrow": false,
+        "font": {
+          "size": 11,
+          "color": "#5f6368"
+        },
+        "xanchor": "center"
+      }
+    ]
+  }
+}

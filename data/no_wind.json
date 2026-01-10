@@ -10,108 +10,22 @@
         99
       ],
       "y": [
-        123.73043294662133,
-        148.00853868235168,
-        169.22492483171445,
-        206.78664379565794,
-        276.88878770385145,
-        390.3204873577054
+        84.35790839210719,
+        96.18863364635878,
+        105.50291817862481,
+        118.07104708375597,
+        141.2564952316348,
+        173.96953441949483
       ],
       "type": "scatter",
       "mode": "lines+markers",
-      "name": "Solar + Storage (Mid-Atlantic)",
-      "line": {
-        "color": "#fbbc05",
-        "width": 3
-      },
-      "marker": {
-        "size": 8
-      }
-    },
-    {
-      "x": [
-        70,
-        80,
-        85,
-        90,
-        95,
-        99
-      ],
-      "y": [
-        87.8248004465526,
-        93.48561021453799,
-        96.11120366743737,
-        99.2931145873985,
-        104.61556967277639,
-        112.4835374682322
-      ],
-      "type": "scatter",
-      "mode": "lines+markers",
-      "name": "+ Clean Firm (Mid-Atlantic)",
-      "line": {
-        "color": "#ff7900",
-        "width": 3
-      },
-      "marker": {
-        "size": 8
-      }
-    },
-    {
-      "x": [
-        70,
-        80,
-        85,
-        90,
-        95,
-        99
-      ],
-      "y": [
-        71.11774746563445,
-        75.46047602287302,
-        79.34384447043409,
-        84.11190085848862,
-        94.26512182483744,
-        106.79856518978269
-      ],
-      "type": "scatter",
-      "mode": "lines+markers",
-      "name": "+ Wind (Mid-Atlantic)",
-      "line": {
-        "color": "#4285f4",
-        "width": 3
-      },
-      "marker": {
-        "size": 8
-      }
-    },
-    {
-      "x": [
-        70,
-        80,
-        85,
-        90,
-        95,
-        99
-      ],
-      "y": [
-        84.35282737631249,
-        96.35301469093467,
-        105.43084791154719,
-        118.13690341947218,
-        141.5198846671335,
-        175.36084832620733
-      ],
-      "type": "scatter",
-      "mode": "lines+markers",
-      "name": "Solar + Storage + Wind (Florida)",
+      "name": "Poor Wind (Florida)",
       "line": {
         "color": "#e57373",
-        "width": 2,
-        "dash": "dash"
+        "width": 3
       },
       "marker": {
-        "size": 6,
-        "symbol": "diamond"
+        "size": 8
       }
     },
     {
@@ -124,24 +38,78 @@
         99
       ],
       "y": [
-        67.18077291486638,
-        68.83558964653463,
-        70.17070037242023,
-        71.60796533411894,
-        75.81531613210969,
-        90.33470023181671
+        74.09972686683673,
+        79.42119000762459,
+        84.68988954164604,
+        93.56538599947645,
+        109.45900323026773,
+        153.47751258914897
       ],
       "type": "scatter",
       "mode": "lines+markers",
-      "name": "Solar + Storage + Wind (Plains)",
+      "name": "Moderate Wind (California)",
       "line": {
-        "color": "#81c784",
-        "width": 2,
-        "dash": "dash"
+        "color": "#ffb74d",
+        "width": 3
       },
       "marker": {
-        "size": 6,
-        "symbol": "diamond"
+        "size": 8
+      }
+    },
+    {
+      "x": [
+        70,
+        80,
+        85,
+        90,
+        95,
+        99
+      ],
+      "y": [
+        70.82283680787646,
+        74.86443313285798,
+        78.28133458493983,
+        83.89639701116812,
+        94.60745402147819,
+        121.28382706912812
+      ],
+      "type": "scatter",
+      "mode": "lines+markers",
+      "name": "Good Wind (Mid-Atlantic)",
+      "line": {
+        "color": "#64b5f6",
+        "width": 3
+      },
+      "marker": {
+        "size": 8
+      }
+    },
+    {
+      "x": [
+        70,
+        80,
+        85,
+        90,
+        95,
+        99
+      ],
+      "y": [
+        67.24565992053755,
+        68.80343138050226,
+        70.04796614609481,
+        71.52004671103168,
+        75.65982187917719,
+        90.06357269935819
+      ],
+      "type": "scatter",
+      "mode": "lines+markers",
+      "name": "Excellent Wind (Plains)",
+      "line": {
+        "color": "#81c784",
+        "width": 3
+      },
+      "marker": {
+        "size": 8
       }
     }
   ],
@@ -174,46 +142,37 @@
     "yaxis": {
       "title": "LCOE ($/MWh)",
       "showgrid": true,
-      "gridcolor": "rgba(0,0,0,0.1)"
+      "gridcolor": "rgba(0,0,0,0.1)",
+      "range": [
+        0,
+        191.36648786144434
+      ]
     },
     "annotations": [
       {
         "x": 95,
-        "y": 281.88878770385145,
-        "text": "Solar + Storage<br>alone struggles",
+        "y": 151.2564952316348,
+        "text": "Poor wind forces<br>high costs",
         "showarrow": true,
         "arrowhead": 2,
-        "ax": -40,
-        "ay": -20,
-        "font": {
-          "size": 10,
-          "color": "#fbbc05"
-        }
-      },
-      {
-        "x": 90,
-        "y": 66.60796533411894,
-        "text": "Great wind<br>in Plains",
-        "showarrow": true,
-        "arrowhead": 2,
-        "ax": 40,
-        "ay": 20,
-        "font": {
-          "size": 10,
-          "color": "#81c784"
-        }
-      },
-      {
-        "x": 90,
-        "y": 123.13690341947218,
-        "text": "Poor wind<br>in Florida",
-        "showarrow": true,
-        "arrowhead": 2,
-        "ax": 40,
-        "ay": -20,
+        "ax": -30,
+        "ay": -30,
         "font": {
           "size": 10,
           "color": "#e57373"
+        }
+      },
+      {
+        "x": 95,
+        "y": 70.65982187917719,
+        "text": "Excellent wind<br>keeps costs low",
+        "showarrow": true,
+        "arrowhead": 2,
+        "ax": 30,
+        "ay": 30,
+        "font": {
+          "size": 10,
+          "color": "#81c784"
         }
       }
     ]

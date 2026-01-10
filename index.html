@@ -8,8 +8,49 @@
     <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 </head>
 <body>
+    <!-- Progress Bar -->
+    <div id="progress-bar"></div>
+
+    <!-- Navigation Sidebar -->
+    <nav id="nav-sidebar" aria-label="Page navigation">
+        <div class="nav-item" data-target="hero" role="button" aria-label="Jump to Intro section" tabindex="0">
+            <div class="nav-dot"></div>
+            <span class="nav-label">Intro</span>
+        </div>
+        <div class="nav-item" data-target="part-1" role="button" aria-label="Jump to Part 1: The Mystery" tabindex="0">
+            <div class="nav-dot"></div>
+            <span class="nav-label">Part 1: Mystery</span>
+        </div>
+        <div class="nav-item" data-target="part-2" role="button" aria-label="Jump to Part 2: Energy Problem" tabindex="0">
+            <div class="nav-dot"></div>
+            <span class="nav-label">Part 2: Energy</span>
+        </div>
+        <div class="nav-item" data-target="part-3" role="button" aria-label="Jump to Part 3: Capacity Problem" tabindex="0">
+            <div class="nav-dot"></div>
+            <span class="nav-label">Part 3: Capacity</span>
+        </div>
+        <div class="nav-item" data-target="part-4" role="button" aria-label="Jump to Part 4: The Solution" tabindex="0">
+            <div class="nav-dot"></div>
+            <span class="nav-label">Part 4: Solution</span>
+        </div>
+        <div class="nav-item" data-target="part-5" role="button" aria-label="Jump to Part 5: Testing" tabindex="0">
+            <div class="nav-dot"></div>
+            <span class="nav-label">Part 5: Testing</span>
+        </div>
+        <div class="nav-item" data-target="takeaways" role="button" aria-label="Jump to Takeaways" tabindex="0">
+            <div class="nav-dot"></div>
+            <span class="nav-label">Takeaways</span>
+        </div>
+    </nav>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" aria-label="Back to top">↑</button>
+
+    <!-- Section Indicator -->
+    <div id="section-indicator"></div>
+
     <!-- Hero Section -->
-    <header class="hero">
+    <header class="hero" id="hero">
         <div class="container">
             <h1>The Clean Energy Puzzle</h1>
             <p class="subtitle">Solar is the cheapest electricity ever generated.<br>
@@ -24,7 +65,7 @@
         <!-- ============================================ -->
         <!-- PART 1: THE MYSTERY -->
         <!-- ============================================ -->
-        <div class="part-header">
+        <div class="part-header" id="part-1">
             <span class="part-label">Part 1</span>
             <h2 class="part-title">The Mystery</h2>
         </div>
@@ -112,7 +153,7 @@
         <!-- ============================================ -->
         <!-- PART 2: THE ENERGY PROBLEM -->
         <!-- ============================================ -->
-        <div class="part-header">
+        <div class="part-header" id="part-2">
             <span class="part-label">Part 2</span>
             <h2 class="part-title">The Energy Problem</h2>
             <p class="part-subtitle">Cheap energy at the wrong time isn't cheap energy</p>
@@ -143,10 +184,40 @@
             <h2>The Cost of Going Solar-Only</h2>
             <p>What if we tried to reach high clean targets with <em>only</em> solar and storage? Each line shows a different storage duration. Watch the cost explode as you approach each ceiling.</p>
             <div id="chart-solar-storage-lcoe" class="chart-container"></div>
+            <details class="assumptions-dropdown">
+                <summary>Cost Assumptions</summary>
+                <div class="assumptions-content">
+                    <p><strong>This chart uses typical US utility-scale costs:</strong></p>
+                    <ul style="margin-left: 20px;">
+                        <li>Solar: <strong>$1,000/kW</strong> (includes modules, BOS, installation, soft costs)</li>
+                        <li>Battery: <strong>$300/kWh</strong> (2023-2024 global average)</li>
+                        <li>Fixed O&M: $15/kW-yr (solar), $10/kWh-yr (storage)</li>
+                        <li>7% discount rate, 20-year analysis period</li>
+                    </ul>
+                </div>
+            </details>
             <p>But what if storage gets cheaper? Watch how falling battery costs bend the curve:</p>
             <div id="chart-storage-cost-sensitivity" class="chart-container"></div>
+            <details class="assumptions-dropdown">
+                <summary>Cost Assumptions</summary>
+                <div class="assumptions-content">
+                    <p><strong>These curves show the impact of cheaper battery storage on solar-only systems:</strong></p>
+                    <p><em>First 4 lines vary only storage cost (solar fixed at $1,000/kW):</em></p>
+                    <ul style="margin-left: 20px;">
+                        <li><strong style="color: #1a73e8;">$300/kWh storage</strong>: Current US average, 2023-2024 global average</li>
+                        <li><strong style="color: #4caf50;">$200/kWh storage</strong>: Optimistic near-term (2-3 years)</li>
+                        <li><strong style="color: #ff9800;">$100/kWh storage</strong>: Global lowest costs today (China, record tenders)</li>
+                        <li><strong style="color: #e91e63;">$50/kWh storage</strong>: Potential future (5-10 years out)</li>
+                    </ul>
+                    <p><em>The 5th line shows ultra-cheap solar AND storage combined:</em></p>
+                    <ul style="margin-left: 20px;">
+                        <li><strong style="color: #9c27b0;">Ultra-cheap solar + storage</strong>: $400/kW solar + $100/kWh storage (global floor)</li>
+                    </ul>
+                    <p class="assumptions-note"><strong>Ember Paper Context:</strong> <a href="https://ember-energy.org/latest-insights/solar-electricity-every-hour-of-every-day-is-here-and-it-changes-everything/" target="_blank" style="color: #1a73e8;">Ember's analysis</a> uses $388/kW solar + $165/kWh battery—these are NOT global averages! The $388/kW solar is <a href="https://www.irena.org/-/media/Files/IRENA/Agency/Publication/2025/Jul/IRENA_TEC_RPGC_in_2024_Summary_2025.pdf" target="_blank" style="color: #1a73e8;">IRENA's projection for 2029</a> (global average today: $691/kW), and $165/kWh is the 2024 record low for battery equipment. These represent optimistic "global floor" costs—roughly <strong>half</strong> of current global averages and well below US projects ($1,058/kW solar, $192/kWh storage average). Residential costs are even higher. Ember's finding of $104/MWh for 97% reliability validates that solar+storage CAN reach very high penetration (85-95%) with aggressive cost declines—but the exponential curve at 95%+ persists even at these ultra-cheap prices.</p>
+                </div>
+            </details>
             <div class="callout warning">
-                <strong>The overbuild trap:</strong> Even at $50/kWh storage, solar-only systems still cost more than diversified portfolios at high clean targets. Cheap storage helps, but diversity still wins.
+                <strong>The takeaway:</strong> Ultra-cheap battery costs are transformative—solar+storage <em>can</em> get very far (80-90%+ clean) in sunny regions with favorable resources, especially as costs continue to decline. At $50-100/kWh storage, you can economically reach 85-90% clean in places like California or the Middle East. However, the fundamental challenge remains: even at record-low prices, seasonal variability creates exponential cost increases in the final push to 95%+. In most regions, diversified portfolios with some clean firm remain the most cost-effective path to very high clean energy targets.
             </div>
         </section>
 
@@ -172,7 +243,7 @@
         <!-- ============================================ -->
         <!-- PART 3: THE CAPACITY PROBLEM -->
         <!-- ============================================ -->
-        <div class="part-header">
+        <div class="part-header" id="part-3">
             <span class="part-label">Part 3</span>
             <h2 class="part-title">The Capacity Problem</h2>
             <p class="part-subtitle">Cheap energy you can't count on has limited value</p>
@@ -202,7 +273,7 @@
         <!-- ============================================ -->
         <!-- PART 4: THE SOLUTION -->
         <!-- ============================================ -->
-        <div class="part-header">
+        <div class="part-header" id="part-4">
             <span class="part-label">Part 4</span>
             <h2 class="part-title">The Solution</h2>
             <p class="part-subtitle">Why optimal systems use expensive-looking technology</p>
@@ -244,17 +315,27 @@
             <p class="insight">Clean firm is 38% of cost but provides the reliability that makes 95% clean possible. The $50 gap between solar's LCOE and system LCOE? It's the cost of <strong>reliability</strong>.</p>
         </section>
 
-        <!-- 4.4 Gas LCOE Impact -->
-        <section id="gas-lcoe-impact" class="section">
-            <h2>Backup Gas Is Cheaper Than You Think</h2>
-            <p>Even high-clean systems need backup gas capacity. But here's the surprise: it barely affects the total cost.</p>
-            <div id="chart-gas-lcoe-impact" class="chart-container"></div>
-            <div class="callout">
-                <strong>Why so little impact?</strong> At 95% clean, gas plants only run ~5% of hours. Low utilization = low fuel costs. Reliability doesn't require burning much fuel.
+        <!-- 4.4 Gas Capacity Requirements -->
+        <section id="gas-capacity-vre" class="section">
+            <h2>VRE Systems Still Need Substantial Gas Capacity</h2>
+            <p>What happens if we try to reach high clean energy targets with only solar, wind, and batteries? Let's optimize the system at each clean target using only these three technologies.</p>
+            <div id="chart-gas-capacity-vre" class="chart-container"></div>
+            <div class="callout warning">
+                <strong>The capacity paradox:</strong> Even at 90% clean energy, you still need ~70% of peak load as backup gas capacity. VRE alone can't displace the need for firm capacity—it can only reduce how often it runs.
             </div>
         </section>
 
-        <!-- 4.5 The Leap -->
+        <!-- 4.5 Gas LCOE Impact -->
+        <section id="gas-lcoe-impact" class="section">
+            <h2>But Backup Gas Is Cheaper Than You Think</h2>
+            <p>The previous chart shows we need a lot of gas capacity. But here's the surprise: it barely affects the total cost.</p>
+            <div id="chart-gas-lcoe-vre" class="chart-container"></div>
+            <div class="callout">
+                <strong>Why so little impact?</strong> At 90% clean, gas plants only run ~10% of hours. At 95% clean, just ~5%. Low utilization = low fuel costs. Reliability doesn't require burning much fuel—it just requires having the capacity available when needed.
+            </div>
+        </section>
+
+        <!-- 4.6 The Leap -->
         <section id="the-leap" class="section">
             <h2>The Leap in Action</h2>
             <p>To see the difference, compare how a system operates during a challenging winter week at 70% vs 95% clean:</p>
@@ -267,7 +348,7 @@
         <!-- ============================================ -->
         <!-- PART 5: TESTING OUR UNDERSTANDING -->
         <!-- ============================================ -->
-        <div class="part-header">
+        <div class="part-header" id="part-5">
             <span class="part-label">Part 5</span>
             <h2 class="part-title">Testing Our Understanding</h2>
             <p class="part-subtitle">Does this hold up under different conditions?</p>
@@ -305,7 +386,79 @@
             </div>
         </section>
 
-        <!-- 5.4 Financing Impact on Different Technologies -->
+        <!-- 5.4 Clean Firm Cost Sensitivity -->
+        <section id="cf-cost-sensitivity" class="section">
+            <h2>The Clean Firm Cost Crossover</h2>
+            <p>Clean firm is critical for deep decarbonization—but <em>costs really do matter</em>. The competitiveness of clean firm depends on both its own cost and the cost of renewables. This creates a dynamic crossover: when renewables are cheap, clean firm must also be cheap to compete. When renewables are expensive, clean firm has much more room to play.</p>
+
+            <h3>80% Clean Match Target</h3>
+            <p>At 80% clean energy, renewables can handle most of the load. Clean firm only makes economic sense at low costs:</p>
+            <div id="chart-cf-cost-80pct" class="chart-container"></div>
+            <p class="insight">Even with expensive renewables, clean firm struggles to compete above $7,000/kW at this target. Renewables + storage are sufficient for most of the decarbonization.</p>
+
+            <h3>90% Clean Match Target</h3>
+            <p>At 90% clean, the picture changes. Clean firm becomes valuable—but how expensive can it be?</p>
+            <div id="chart-cf-cost-90pct" class="chart-container"></div>
+            <ul class="region-notes">
+                <li><strong style="color: #34a853;">Ultra-cheap renewables:</strong> If solar/wind/storage hit rock-bottom prices, clean firm needs to be around <strong>$2,000-3,000/kW</strong> to play a role. These are prices China is approaching today.</li>
+                <li><strong style="color: #4285f4;">Current renewable costs:</strong> At today's typical prices, clean firm is economic up to <strong>$5,000-7,000/kW</strong>—a sweet spot where <em>substantial</em> clean firm capacity (20-50 MW, or 25-70% of clean capacity) makes sense. This range has been demonstrated globally.</li>
+                <li><strong style="color: #ea4335;">Higher renewable costs:</strong> If renewables stay expensive, clean firm remains valuable even above <strong>$7,000/kW</strong>. The cost crossover moves in clean firm's favor.</li>
+            </ul>
+
+            <h3>100% Clean Match Target</h3>
+            <p>At 100% clean energy, firm capacity is essential. Clean firm becomes highly competitive even at high costs:</p>
+            <div id="chart-cf-cost-100pct" class="chart-container"></div>
+            <p class="insight">Notice how the curves flatten—clean firm maintains significant capacity even at $10,000+/kW in many scenarios. The "last 10%" problem creates strong demand for firm power, making clean firm competitive at prices that would never work at lower targets. <strong>The higher you want to go, the more competitive clean firm becomes—even at very high prices.</strong></p>
+
+            <div class="callout">
+                <strong>The cost tiers:</strong> Clean firm's role depends critically on its cost:
+                <ul style="margin-top: 12px; margin-bottom: 0;">
+                    <li><strong>$2,000-3,000/kW or below:</strong> Clean firm becomes <em>dominant</em>—expect to see <strong>50%+ of the optimal clean energy mix</strong> in many regions. At these prices, clean firm outcompetes renewables + storage even in sunny, windy locations. Early nuclear achieved this range; China is approaching it today.</li>
+                    <li><strong>$4,000-6,000/kW:</strong> The sweet spot for a <strong>substantial role</strong> (20-50% of clean capacity) at 90%+ targets with current renewable costs. This range has been demonstrated globally across various clean firm technologies.</li>
+                    <li><strong>Above $6,000/kW:</strong> Need compounding factors against renewables (high costs, poor resources, land constraints) for clean firm to be valuable. Can still capture market share, but only in specific circumstances.</li>
+                </ul>
+            </div>
+            <div class="callout warning">
+                <strong>The technology filter:</strong> If a clean firm technology doesn't have a credible path to the <strong>$5,000-6,000/kW range</strong> or below, it likely won't play a major role in cost-optimal systems—<em>unless</em> renewables prove to be structurally more expensive than expected or simply unavailable in certain regions. In those scenarios, even expensive clean firm (>$7,000/kW) can capture substantial market share. But for most regions with good renewable resources, the economics favor technologies that can hit that $4,000-6,000/kW sweet spot—or better yet, the <strong>$2,000-3,000/kW range where clean firm becomes truly dominant</strong>.</div>
+            <details class="assumptions-dropdown">
+                <summary>Assumptions</summary>
+                <div class="assumptions-content">
+                    <table class="assumptions-table">
+                        <thead>
+                            <tr>
+                                <th>Scenario</th>
+                                <th>Solar ($/kW)</th>
+                                <th>Wind ($/kW)</th>
+                                <th>Battery ($/kWh)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Low Cost Renewables</strong></td>
+                                <td>$500</td>
+                                <td>$700</td>
+                                <td>$100</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Default Renewables</strong></td>
+                                <td>$1,000</td>
+                                <td>$1,200</td>
+                                <td>$300</td>
+                            </tr>
+                            <tr>
+                                <td><strong>High Cost Renewables</strong></td>
+                                <td>$1,500</td>
+                                <td>$1,800</td>
+                                <td>$450</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="assumptions-note"><strong>Clean Firm Cost:</strong> Swept from $1,000/kW to $12,000/kW. <strong>Optimization:</strong> V4 min-LCOE optimizer with hybrid battery mode. <strong>Location:</strong> California.</p>
+                </div>
+            </details>
+        </section>
+
+        <!-- 5.5 Financing Impact on Different Technologies -->
         <section id="cleanfirm-tech" class="section">
             <h2>Financing Impacts Technologies Differently</h2>
             <p>Different technologies have different cost structures. Capital-intensive technologies (solar, wind, nuclear, geothermal) are very sensitive to financing costs, while fuel-heavy technologies (gas) are less sensitive but exposed to volatile fuel prices:</p>
@@ -317,7 +470,7 @@
             </ul>
         </section>
 
-        <!-- 5.5 Financing Impact -->
+        <!-- 5.6 Financing Impact -->
         <section id="financing" class="section">
             <h2>Financing Matters More Than Tax Credits</h2>
             <p>Policy debates focus on tax credits. But for capital-intensive clean energy, financing costs may matter even more:</p>
@@ -327,12 +480,14 @@
             </div>
         </section>
 
-        <!-- 5.6 What If No Wind? -->
+        <!-- 5.7 Wind Quality Matters -->
         <section id="no-wind" class="section">
-            <h2>What If No Wind?</h2>
-            <p>Some regions like Florida have limited wind. Here's what happens:</p>
+            <h2>Wind Quality Matters</h2>
+            <p>Not all regions have equal wind resources. Compare how solar+storage+wind performs across four regions with different wind quality:</p>
             <div id="chart-no-wind" class="chart-container"></div>
-            <p class="insight">Without wind, clean firm becomes even more critical. Solar + storage alone can't get you there affordably.</p>
+            <div class="callout">
+                <strong>VRE can get very far—but not to 100%:</strong> In excellent wind regions like the Plains, solar+wind+storage can economically reach 85-90% clean energy. Geography matters enormously—the Plains achieve this at half the cost of Florida. But notice that even in the best wind regions, costs start accelerating beyond 90%. Variable renewables alone struggle with the final 5-10% due to seasonal variability and multi-day weather patterns that storage can't economically bridge. This is where clean firm power becomes essential: <em>if your target is 90%+, you need clean firm in your portfolio from the start</em>, not just VRE. At lower targets (70-85%), VRE can often do the job alone in strong resource regions.
+            </div>
         </section>
 
         <!-- 5.7 The Greedy Trap -->
@@ -348,10 +503,115 @@
         <!-- ============================================ -->
         <!-- IMPLICATIONS -->
         <!-- ============================================ -->
-        <div class="part-header">
+        <div class="part-header" id="takeaways">
             <span class="part-label">Takeaways</span>
             <h2 class="part-title">Implications</h2>
         </div>
+
+        <section id="system-integration" class="section">
+            <h2>Beyond Technology Costs: System Integration Matters</h2>
+            <p>The analysis above uses standalone technology costs. But the real choice between VRE and clean firm depends on <strong>system integration costs</strong> that don't show up in LCOE:</p>
+
+            <div class="two-column">
+                <div class="column">
+                    <h3>Factors That Favor More Clean Firm</h3>
+                    <ul>
+                        <li><strong>Transmission constraints:</strong> Remote renewables require extensive transmission buildout. Each $/kW of transmission cost effectively increases renewable CAPEX, making clean firm more competitive.</li>
+                        <li><strong>Siting challenges:</strong> Distributed renewables need less backbone transmission than remote utility-scale projects. Where transmission faces regulatory hurdles, clean firm may be more practical.</li>
+                        <li><strong>Grid stability:</strong> Clean firm provides inertia and voltage support that renewables + inverters struggle to match. This hidden value isn't captured in LCOE.</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h3>Factors That Favor More VRE</h3>
+                    <ul>
+                        <li><strong>Falling renewable costs:</strong> Every 10% drop in solar/wind CAPEX expands the VRE-viable range by ~5 percentage points.</li>
+                        <li><strong>Cheaper storage:</strong> At $100/kWh (vs $300/kWh today), solar+storage can economically reach 85-90% in sunny regions.</li>
+                        <li><strong>Transmission economies of scale:</strong> High-voltage DC backbone lines with strong scale economies enable remote renewable zones (offshore wind, desert solar) to compete effectively.</li>
+                        <li><strong>Hybrid renewables:</strong> Co-locating solar+wind+storage at the same site shares transmission infrastructure, lowering integration costs.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="callout">
+                <strong>The gas peaker paradox:</strong> Even at 95% clean, you need substantial gas peaker capacity for reliability (~30-50% of peak load). But because they run only ~5% of hours, they add little to system LCOE ($3-5/MWh) and create minimal future fuel price exposure. The gas peakers aren't the problem—they're the insurance policy. The question is what fills the other 90-95% of energy demand.
+            </div>
+
+            <p><strong>Bottom line:</strong> Transmission costs can shift the optimal balance. In transmission-constrained regions, the clean firm threshold may be 85% instead of 90%. In regions with cheap transmission or strong renewable co-location opportunities, VRE alone might reach 90-92%. The charts above show technology costs—real decisions must account for infrastructure too.</p>
+        </section>
+
+        <section id="clean-electricity-buyers" class="section">
+            <h2>What This Means for Clean Electricity Procurement</h2>
+            <p>If you're procuring clean electricity—whether as a corporate buyer, a data center operator, a clean steel manufacturer, or anyone seeking to demonstrate low-carbon Scope 2 emissions—the analysis above has critical implications for your procurement strategy:</p>
+
+            <h3>Temporal Mismatch Really Matters</h3>
+            <p>Everything we've discussed shows that <strong>matching supply and demand hour-by-hour is not trivial</strong>. Volumetric accounting—buying enough clean energy annually to match your consumption—is fundamentally different from actual temporal matching. A 100% volumetric match can still leave you pulling from the grid (and its emissions) during many hours of the year.</p>
+
+            <div class="callout warning">
+                <strong>The small-load illusion:</strong> When you're a very small load, you can achieve artificially high volumetric matching scores by over-procuring renewables and exporting the excess back to the grid. But <strong>at the system level, that "exported" energy is often just curtailment</strong>—renewable generation that couldn't be used because supply exceeded demand. You're not helping the grid decarbonize; you're just claiming credit for energy that would have been wasted.
+            </div>
+
+            <h3>You Can't Net Meter Your Way Out of System-Level Constraints</h3>
+            <p>The lesson: <strong>what works at small scale doesn't necessarily scale to the system level</strong>. A procurement strategy that shows 100% matching for your load might contribute zero marginal clean energy to the grid if you're just buying solar in a region that's already curtailing solar.</p>
+
+            <p>This has profound implications for how you evaluate renewable energy procurement:</p>
+            <ul class="region-notes">
+                <li><strong>Not all clean electrons are created equal.</strong> Adding more solar to a solar-saturated region contributes less real decarbonization than adding the missing piece (storage, wind, or clean firm).</li>
+                <li><strong>The next cheapest resource may not be the right resource.</strong> If your region is approaching the solar ceiling, buying more solar PPA capacity might be cheap—but it's not addressing the system's actual constraint.</li>
+                <li><strong>Understanding the regional end-state matters.</strong> What does your region need to reach 90-95% clean? Is it cheap storage? More wind? Competitive clean firm? Your procurement dollars are most impactful when they catalyze deployment of the <em>missing</em> resources, not just the cheapest available option.</li>
+            </ul>
+
+            <h3>The Catalytic Role of Clean Electricity Procurement</h3>
+            <p>Clean electricity buyers can be <strong>incredibly catalytic</strong> precisely because you can afford to take on resources that are needed but not yet cost-competitive:</p>
+
+            <div class="two-column">
+                <div class="column">
+                    <h4>What's Missing in Your Region?</h4>
+                    <ul>
+                        <li>Texas: Needs more storage to absorb abundant wind</li>
+                        <li>California: Needs storage + clean firm for evening peaks</li>
+                        <li>Southeast: Needs wind alternatives (offshore wind, clean firm)</li>
+                        <li>Northeast: Needs transmission + offshore wind + nuclear where allowed</li>
+                    </ul>
+                </div>
+                <div class="column">
+                    <h4>Strategic Procurement Priorities</h4>
+                    <ul>
+                        <li>Procure the <strong>missing piece</strong>, not the cheapest piece</li>
+                        <li>Understand regional constraints and the path to 90%+</li>
+                        <li>Avoid dead ends—don't over-procure saturated resources</li>
+                        <li>Support resources that unlock the next 10-20% of clean energy deployment</li>
+                    </ul>
+                </div>
+            </div>
+
+            <p class="insight"><strong>Key takeaway:</strong> Clean electricity buyers should think like system planners, not just cost minimizers. The most impactful procurement strategy is one that accelerates deployment of the resources your region needs to overcome its specific barriers to deep decarbonization—whether that's cheap storage, competitive offshore wind, or affordable clean firm. Every region is different, and the goal is to catalyze the technologies that unlock progress, not just buy the cheapest kWh available today.</p>
+        </section>
+
+        <section id="resource-constraints" class="section">
+            <h2>Not Every Region Can Build Everything</h2>
+            <p>The analysis above assumes all technologies are available. But real regions face constraints that make diverse portfolios even more critical:</p>
+
+            <div class="callout warning">
+                <strong>Regional resource and regulatory constraints:</strong>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Nuclear:</strong> Politically or regulatorily prohibited in some states/countries, long lead times</li>
+                    <li><strong>Onshore wind:</strong> NIMBYism, local opposition, limited suitable sites in densely populated regions</li>
+                    <li><strong>Large-scale solar:</strong> Land use conflicts, agricultural protection zones, desert ecosystems</li>
+                    <li><strong>Offshore wind:</strong> Limited to coastal regions, deep water challenges, fishing industry conflicts</li>
+                    <li><strong>Geothermal:</strong> Only viable in specific geological formations, not available everywhere</li>
+                    <li><strong>Pumped hydro:</strong> Requires specific topography, water availability, environmental restrictions</li>
+                    <li><strong>Transmission:</strong> Rights-of-way battles, interstate coordination failures, decade-long permitting</li>
+                </ul>
+            </div>
+
+            <p><strong>This is why technology diversity matters:</strong> No single region has access to all resources, and no single technology works everywhere. California can't rely on offshore wind (limited deepwater sites). Florida can't count on onshore wind (poor resource). The Northeast faces nuclear opposition. The Plains have transmission constraints to demand centers.</p>
+
+            <p><strong>Constraints compound:</strong> A region with no wind access might only reach 60% clean affordably with solar+storage alone—far below the 85-90% possible in regions with strong wind. Stack on nuclear opposition or geothermal unavailability, and the ceiling drops further. Each missing technology narrows the path to deep decarbonization.</p>
+
+            <p>Each technology has complementary strengths and weaknesses. A region that can't build nuclear needs exceptional wind or cheap clean firm hydrogen. A region with poor wind needs more solar+storage or geothermal. <strong>The goal isn't to pick winners—it's to ensure multiple pathways to deep decarbonization exist</strong>, because different regions will face different barriers and the constraints can be severe.</p>
+
+            <p class="insight">Some regions are better positioned than others—Texas has excellent wind, California has exceptional solar, the Pacific Northwest has hydro. But every region needs a strategy. Understanding these resource advantages and constraints is essential for realistic decarbonization planning.</p>
+        </section>
 
         <section id="implications" class="section">
             <div class="implications-grid">
@@ -371,6 +631,10 @@
                     <h3>Wind-Limited Regions Face Higher Costs</h3>
                     <p>Areas like Florida and the Southeast will need more investment in clean firm to achieve high clean targets affordably.</p>
                 </div>
+                <div class="implication-card">
+                    <h3>VRE Can Get Very Far—But Not to 100%</h3>
+                    <p>Solar+wind+storage can economically reach 85-90% clean in strong resource regions. But if your target is 90%+, you need clean firm in the portfolio from the start. At 70-85%, VRE alone often works.</p>
+                </div>
             </div>
         </section>
 
@@ -378,9 +642,35 @@
         <footer class="section">
             <p>Built with data from the Clean Energy Optimization Model. Charts are interactive—hover for details, drag to zoom.</p>
             <p class="footer-cta">Try it yourself: <a href="https://www.niyer-energy-dashboards.com/">niyer-energy-dashboards.com</a></p>
+
+            <!-- Export Text Version Button -->
+            <div style="margin-top: 40px; text-align: center;">
+                <button id="export-text-btn" class="export-text-button">
+                    Export Text Version for AI Analysis
+                </button>
+            </div>
         </footer>
     </main>
 
+    <!-- Text Export Modal -->
+    <div id="text-export-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Text Version for AI Analysis</h2>
+                <button class="modal-close" aria-label="Close modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 16px; color: #5f6368;">This is a structured text version of the microsite content, optimized for LLM analysis. Includes all narrative text, chart data, and assumptions. Click "Copy to Clipboard" to use it with Gemini, Claude, ChatGPT, or other AI assistants.</p>
+                <div class="modal-actions">
+                    <button id="copy-text-btn" class="action-button primary">Copy to Clipboard</button>
+                    <button id="download-text-btn" class="action-button">Download as .txt</button>
+                </div>
+                <textarea id="text-content" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
     <script src="js/charts.js"></script>
+    <script src="js/text-export.js"></script>
 </body>
 </html>

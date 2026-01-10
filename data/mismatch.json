@@ -173,16 +173,17 @@
     "annotations": [
       {
         "x": 18,
-        "y": 85,
+        "y": 92,
         "text": "Evening gap",
         "showarrow": true,
         "arrowhead": 2,
         "ax": -40,
         "ay": -30,
         "font": {
-          "size": 11,
-          "color": "#ea4335"
-        }
+          "size": 12,
+          "color": "#5f6368"
+        },
+        "arrowcolor": "#5f6368"
       }
     ]
   }

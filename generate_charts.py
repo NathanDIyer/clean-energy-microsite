@@ -962,113 +962,57 @@ def generate_no_cleanfirm_chart(zone_data, zone='California', cost_settings=None
 
 def generate_no_wind_chart(zone_data, zone='Mid-Atlantic', cost_settings=None):
     """
-    Generate resource availability comparison showing:
-    1. Mid-Atlantic scenarios (Solar+Storage, +Clean Firm, +Wind)
-    2. Regional wind comparison (Florida vs Plains) to show location matters
+    Show how wind resource quality affects system cost.
+    Compares regions with poor, moderate, and excellent wind resources.
+    All scenarios use Solar + Storage + Wind (no clean firm) to isolate wind quality impact.
     """
-    print("Generating no wind chart (Mid-Atlantic + regional wind comparison)...")
+    print("Generating wind quality comparison chart...")
 
     if cost_settings is None:
         cost_settings = DEFAULT_COSTS.copy()
 
     targets = [70, 80, 85, 90, 95, 99]
 
-    # Mid-Atlantic scenarios
-    lcoe_solar_storage = []      # Solar + Storage only
-    lcoe_solar_storage_cf = []   # Solar + Storage + Clean Firm
-    lcoe_full_mix = []           # Solar + Storage + Clean Firm + Wind
+    # Select regions with different wind quality
+    regions = {
+        'Florida': {'color': '#e57373', 'label': 'Poor Wind (Florida)'},
+        'California': {'color': '#ffb74d', 'label': 'Moderate Wind (California)'},
+        'Mid-Atlantic': {'color': '#64b5f6', 'label': 'Good Wind (Mid-Atlantic)'},
+        'Plains': {'color': '#81c784', 'label': 'Excellent Wind (Plains)'}
+    }
 
-    # Regional wind comparison (Solar + Storage + Wind, no clean firm)
-    lcoe_ssw_florida = []        # Florida - poor wind
-    lcoe_ssw_plains = []         # Plains - great wind
+    results = {region: [] for region in regions}
 
-    print(f"  Running Mid-Atlantic scenarios...")
-    for target in targets:
-        # Scenario 1: Solar + Storage only (no wind, no clean firm)
-        # Use higher bounds since solar+storage alone needs much more capacity at high targets
-        result_ss = run_optimization(zone_data, zone, target, cost_settings,
-                                     use_wind=False, use_clean_firm=False,
-                                     max_solar=3000, max_storage=10000)
-        lcoe_solar_storage.append(result_ss['lcoe'])
+    # Run optimization for each region
+    for region_name in regions:
+        print(f"  Running {region_name}...")
+        for target in targets:
+            result = run_optimization(zone_data, region_name, target, cost_settings,
+                                      use_wind=True, use_clean_firm=False,
+                                      max_solar=3000, max_storage=10000)
+            results[region_name].append(result['lcoe'])
+            print(f"    {target}%: ${result['lcoe']:.1f}")
 
-        # Scenario 2: Solar + Storage + Clean Firm (no wind)
-        result_sscf = run_optimization(zone_data, zone, target, cost_settings,
-                                       use_wind=False, use_clean_firm=True)
-        lcoe_solar_storage_cf.append(result_sscf['lcoe'])
+    print(f"  Cost at 95% clean:")
+    for region_name in regions:
+        idx_95 = targets.index(95)
+        print(f"    {region_name}: ${results[region_name][idx_95]:.1f}/MWh")
 
-        # Scenario 3: Full mix (all resources)
-        result_full = run_optimization(zone_data, zone, target, cost_settings,
-                                       use_wind=True, use_clean_firm=True)
-        lcoe_full_mix.append(result_full['lcoe'])
-
-        print(f"    {target}%: S+S=${result_ss['lcoe']:.1f}, S+S+CF=${result_sscf['lcoe']:.1f}, "
-              f"Full=${result_full['lcoe']:.1f}")
-
-    # Regional wind comparison - Solar + Storage + Wind (no clean firm)
-    print(f"  Running Florida (poor wind)...")
-    for target in targets:
-        result = run_optimization(zone_data, 'Florida', target, cost_settings,
-                                  use_wind=True, use_clean_firm=False)
-        lcoe_ssw_florida.append(result['lcoe'])
-        print(f"    {target}%: ${result['lcoe']:.1f}")
-
-    print(f"  Running Plains (great wind)...")
-    for target in targets:
-        result = run_optimization(zone_data, 'Plains', target, cost_settings,
-                                  use_wind=True, use_clean_firm=False)
-        lcoe_ssw_plains.append(result['lcoe'])
-        print(f"    {target}%: ${result['lcoe']:.1f}")
+    # Build chart data
+    chart_data = []
+    for region_name, region_info in regions.items():
+        chart_data.append({
+            'x': targets,
+            'y': results[region_name],
+            'type': 'scatter',
+            'mode': 'lines+markers',
+            'name': region_info['label'],
+            'line': {'color': region_info['color'], 'width': 3},
+            'marker': {'size': 8}
+        })
 
     chart = {
-        'data': [
-            # Mid-Atlantic scenarios
-            {
-                'x': targets,
-                'y': lcoe_solar_storage,
-                'type': 'scatter',
-                'mode': 'lines+markers',
-                'name': 'Solar + Storage (Mid-Atlantic)',
-                'line': {'color': COLORS['solar'], 'width': 3},
-                'marker': {'size': 8}
-            },
-            {
-                'x': targets,
-                'y': lcoe_solar_storage_cf,
-                'type': 'scatter',
-                'mode': 'lines+markers',
-                'name': '+ Clean Firm (Mid-Atlantic)',
-                'line': {'color': COLORS['clean_firm'], 'width': 3},
-                'marker': {'size': 8}
-            },
-            {
-                'x': targets,
-                'y': lcoe_full_mix,
-                'type': 'scatter',
-                'mode': 'lines+markers',
-                'name': '+ Wind (Mid-Atlantic)',
-                'line': {'color': COLORS['wind'], 'width': 3},
-                'marker': {'size': 8}
-            },
-            # Regional wind comparison
-            {
-                'x': targets,
-                'y': lcoe_ssw_florida,
-                'type': 'scatter',
-                'mode': 'lines+markers',
-                'name': 'Solar + Storage + Wind (Florida)',
-                'line': {'color': '#e57373', 'width': 2, 'dash': 'dash'},
-                'marker': {'size': 6, 'symbol': 'diamond'}
-            },
-            {
-                'x': targets,
-                'y': lcoe_ssw_plains,
-                'type': 'scatter',
-                'mode': 'lines+markers',
-                'name': 'Solar + Storage + Wind (Plains)',
-                'line': {'color': '#81c784', 'width': 2, 'dash': 'dash'},
-                'marker': {'size': 6, 'symbol': 'diamond'}
-            }
-        ],
+        'data': chart_data,
         'layout': {
             **LAYOUT_DEFAULTS,
             'xaxis': {
@@ -1079,38 +1023,29 @@ def generate_no_wind_chart(zone_data, zone='Mid-Atlantic', cost_settings=None):
             'yaxis': {
                 'title': 'LCOE ($/MWh)',
                 'showgrid': True,
-                'gridcolor': 'rgba(0,0,0,0.1)'
+                'gridcolor': 'rgba(0,0,0,0.1)',
+                'range': [0, max([max(v) for v in results.values()]) * 1.1]
             },
             'annotations': [
                 {
                     'x': 95,
-                    'y': lcoe_solar_storage[targets.index(95)] + 5,
-                    'text': 'Solar + Storage<br>alone struggles',
+                    'y': results['Florida'][targets.index(95)] + 10,
+                    'text': 'Poor wind forces<br>high costs',
                     'showarrow': True,
                     'arrowhead': 2,
-                    'ax': -40,
-                    'ay': -20,
-                    'font': {'size': 10, 'color': COLORS['solar']}
-                },
-                {
-                    'x': 90,
-                    'y': lcoe_ssw_plains[targets.index(90)] - 5,
-                    'text': 'Great wind<br>in Plains',
-                    'showarrow': True,
-                    'arrowhead': 2,
-                    'ax': 40,
-                    'ay': 20,
-                    'font': {'size': 10, 'color': '#81c784'}
-                },
-                {
-                    'x': 90,
-                    'y': lcoe_ssw_florida[targets.index(90)] + 5,
-                    'text': 'Poor wind<br>in Florida',
-                    'showarrow': True,
-                    'arrowhead': 2,
-                    'ax': 40,
-                    'ay': -20,
+                    'ax': -30,
+                    'ay': -30,
                     'font': {'size': 10, 'color': '#e57373'}
+                },
+                {
+                    'x': 95,
+                    'y': results['Plains'][targets.index(95)] - 5,
+                    'text': 'Excellent wind<br>keeps costs low',
+                    'showarrow': True,
+                    'arrowhead': 2,
+                    'ax': 30,
+                    'ay': 30,
+                    'font': {'size': 10, 'color': '#81c784'}
                 }
             ]
         }
@@ -1770,6 +1705,34 @@ def generate_solar_storage_lcoe(zone_data, zone='California', cost_settings=None
     return chart
 
 
+def generate_solar_storage_lcoe_cheap(zone_data, zone='California', cost_settings=None):
+    """
+    Ultra-cheap variant of solar+storage LCOE curve showing global lowest costs.
+    Uses Chinese/Gulf market prices: ~$400/kW solar, ~$100/kWh storage.
+    This represents the absolute global floor - multiples below most regional averages.
+    """
+    print("Generating ultra-cheap solar+storage LCOE sweep (global lowest costs)...")
+
+    if cost_settings is None:
+        cost_settings = DEFAULT_COSTS.copy()
+
+    # Override with ultra-cheap global costs
+    cheap_costs = cost_settings.copy()
+    cheap_costs['solar'] = 400      # Global lowest (China/Middle East), vs $1000 US average
+    cheap_costs['storage'] = 100    # Near record lows ($72 Saudi tender, $165 global avg)
+    cheap_costs['solar_fixed_om'] = 10  # Slightly lower O&M too
+
+    # Call the standard function with modified costs
+    chart = generate_solar_storage_lcoe(zone_data, zone, cheap_costs)
+
+    # Update the trace name to indicate this is the cheap variant
+    if chart and 'data' in chart and len(chart['data']) > 0:
+        chart['data'][0]['name'] = 'Ultra-Cheap Solar+Storage'
+        chart['data'][0]['line']['color'] = '#34a853'  # Green to indicate "cheap"
+
+    return chart
+
+
 def generate_storage_cost_sensitivity(zone_data, zone='California', cost_settings=None):
     """
     Show how cheaper storage costs bend the LCOE curve for solar+storage systems.
@@ -1863,6 +1826,85 @@ def generate_storage_cost_sensitivity(zone_data, zone='California', cost_setting
             })
 
             print(f"    ${storage_cost}/kWh: Max {max(matches):.0f}% at ${lcoes[-1]:.0f}/MWh")
+
+    # Add ultra-cheap scenario: cheap solar + cheap storage combined
+    # Use IDENTICAL sweep logic to the standard lines above
+    print(f"  Testing ultra-cheap scenario: $400/kW solar + $100/kWh storage...")
+    ember_costs = cost_settings.copy()
+    ember_costs['solar'] = 400  # Global lowest solar cost
+    ember_costs['storage'] = 100  # Near record-low storage
+    ember_costs['solar_fixed_om'] = 10  # Lower O&M too
+
+    results = []
+
+    # Use the actual optimizer like the dashboard does (starts from 0%)
+    from optimizer import run_optimization
+
+    for target_pct in range(0, 96, 5):
+        try:
+            output = run_optimization(
+                n_clicks=1,
+                clean_match_target=target_pct,
+                strategy='min_lcoe',
+                selected_zone=zone,
+                cost_settings=ember_costs,
+                load_type='Hourly Load',
+                demand_response_val=0,
+                zone_data=zone_data,
+                flat_load=None,
+                use_solar=True,
+                use_wind=False,
+                use_storage=True,
+                use_clean_firm=False,
+                peak_shaver_mode=False,
+                hybrid_mode=True
+            )
+
+            # Debug: check what we got back
+            if output is None:
+                print(f"      {target_pct}%: returned None")
+                continue
+
+            # Unpack the output
+            if len(output) == 5:
+                _, result, _, _, _ = output
+            else:
+                print(f"      {target_pct}%: unexpected output length {len(output)}")
+                continue
+
+            if result and isinstance(result, dict):
+                if 'lcoe' in result and 'achieved_match' in result:
+                    results.append({
+                        'match': result['achieved_match'],
+                        'lcoe': result['lcoe']
+                    })
+                    print(f"      {target_pct}%: ✓ {result['achieved_match']:.1f}% @ ${result['lcoe']:.1f}/MWh")
+                else:
+                    print(f"      {target_pct}%: missing keys")
+            else:
+                print(f"      {target_pct}%: result not a dict")
+        except Exception as e:
+            print(f"      {target_pct}%: Error - {e}")
+            import traceback
+            traceback.print_exc()
+            continue
+
+    if results:
+        matches = [r['match'] for r in results]
+        lcoes = [r['lcoe'] for r in results]
+
+        traces.append({
+            'x': matches,
+            'y': lcoes,
+            'type': 'scatter',
+            'mode': 'lines+markers',
+            'name': 'Ultra-cheap solar + storage',
+            'line': {'color': '#9c27b0', 'width': 3, 'dash': 'solid'},
+            'marker': {'size': 6},
+            'hoverinfo': 'skip'
+        })
+
+        print(f"    Ultra-cheap: {min(matches):.0f}% to {max(matches):.0f}% clean, ${lcoes[0]:.0f}/MWh to ${lcoes[-1]:.0f}/MWh")
 
     chart = {
         'data': traces,
@@ -2483,10 +2525,10 @@ def generate_cleanfirm_comparison(zone_data, zone='California'):
     Key insight: Capital-intensive technologies (solar, wind, nuclear, geothermal) are
     very sensitive to financing costs, while fuel-heavy technologies (gas) are less
     sensitive but have higher floor costs driven by fuel prices.
+
+    Shows side-by-side bar chart comparison at 4% vs 12% discount rates.
     """
     print("Generating technology discount rate comparison...")
-
-    discount_rates = [3, 5, 7, 9, 12]
 
     # Different technology assumptions
     # capex in $/kW, fuel in $/MWh, cf = capacity factor
@@ -2495,76 +2537,81 @@ def generate_cleanfirm_comparison(zone_data, zone='California'):
         'Wind': {'capex': 1200, 'fuel': 0, 'cf': 0.35, 'om': 25, 'color': COLORS['wind'], 'lifetime': 25},
         'Nuclear': {'capex': 8000, 'fuel': 8, 'cf': 0.90, 'om': 30, 'color': COLORS['storage'], 'lifetime': 40},
         'Geothermal': {'capex': 5000, 'fuel': 0, 'cf': 0.85, 'om': 20, 'color': '#34a853', 'lifetime': 30},
-        'Gas ($3/MMBtu)': {'capex': 900, 'fuel': 21, 'cf': 0.50, 'om': 15, 'color': COLORS['gas'], 'lifetime': 30, 'dash': 'solid'},  # 7 MMBtu/MWh * $3
-        'Gas ($8/MMBtu)': {'capex': 900, 'fuel': 56, 'cf': 0.50, 'om': 15, 'color': COLORS['gas'], 'lifetime': 30, 'dash': 'dash'}   # 7 MMBtu/MWh * $8
+        'Gas ($3)': {'capex': 900, 'fuel': 21, 'cf': 0.50, 'om': 15, 'color': COLORS['gas'], 'lifetime': 30},  # 7 MMBtu/MWh * $3
+        'Gas ($8)': {'capex': 900, 'fuel': 56, 'cf': 0.50, 'om': 15, 'color': '#d32f2f', 'lifetime': 30}   # 7 MMBtu/MWh * $8, darker red
     }
 
-    chart_data = []
+    tech_names = list(technologies.keys())
+    lcoes_4pct = []
+    lcoes_12pct = []
+    colors_list = []
+
+    def calc_lcoe(tech, dr):
+        lifetime = tech.get('lifetime', 30)
+        crf = (dr/100 * (1 + dr/100)**lifetime) / ((1 + dr/100)**lifetime - 1)
+        cf = tech['cf']
+        annual_gen = cf * 8760  # kWh per kW
+
+        capex_mwh = (tech['capex'] * crf * 1000) / annual_gen
+        om_mwh = tech['om']
+        fuel_mwh = tech['fuel']
+
+        return capex_mwh + om_mwh + fuel_mwh
 
     for tech_name, tech in technologies.items():
-        lcoes = []
-        lifetime = tech.get('lifetime', 30)
-        for dr in discount_rates:
-            # Capital recovery factor
-            crf = (dr/100 * (1 + dr/100)**lifetime) / ((1 + dr/100)**lifetime - 1)
-            cf = tech['cf']
-            annual_gen = cf * 8760  # kWh per kW
+        lcoe_4 = calc_lcoe(tech, 4)
+        lcoe_12 = calc_lcoe(tech, 12)
 
-            capex_mwh = (tech['capex'] * crf * 1000) / annual_gen
-            om_mwh = tech['om']
-            fuel_mwh = tech['fuel']
+        lcoes_4pct.append(lcoe_4)
+        lcoes_12pct.append(lcoe_12)
+        colors_list.append(tech['color'])
 
-            lcoe = capex_mwh + om_mwh + fuel_mwh
-            lcoes.append(lcoe)
-
-        print(f"  {tech_name}: ${lcoes[0]:.0f} (3%) to ${lcoes[-1]:.0f} (12%)")
-
-        trace = {
-            'x': discount_rates,
-            'y': lcoes,
-            'type': 'scatter',
-            'mode': 'lines+markers',
-            'name': tech_name,
-            'line': {'color': tech['color'], 'width': 3},
-            'marker': {'size': 8}
-        }
-
-        # Add dash style for high gas price line
-        if tech.get('dash'):
-            trace['line']['dash'] = tech['dash']
-
-        chart_data.append(trace)
+        print(f"  {tech_name}: ${lcoe_4:.0f} (4%) → ${lcoe_12:.0f} (12%), change: +${lcoe_12-lcoe_4:.0f}")
 
     chart = {
-        'data': chart_data,
+        'data': [
+            {
+                'x': tech_names,
+                'y': lcoes_4pct,
+                'type': 'bar',
+                'name': '4% Discount Rate',
+                'marker': {'color': colors_list, 'opacity': 0.7},
+                'text': [f'${v:.0f}' for v in lcoes_4pct],
+                'textposition': 'outside',
+                'textfont': {'size': 10}
+            },
+            {
+                'x': tech_names,
+                'y': lcoes_12pct,
+                'type': 'bar',
+                'name': '12% Discount Rate',
+                'marker': {'color': colors_list},
+                'text': [f'${v:.0f}' for v in lcoes_12pct],
+                'textposition': 'outside',
+                'textfont': {'size': 10}
+            }
+        ],
         'layout': {
             **LAYOUT_DEFAULTS,
+            'barmode': 'group',
             'xaxis': {
-                'title': 'Discount Rate (%)',
-                'showgrid': True,
-                'gridcolor': 'rgba(0,0,0,0.1)'
+                'title': '',
+                'showgrid': False
             },
             'yaxis': {
                 'title': 'LCOE ($/MWh)',
                 'showgrid': True,
-                'gridcolor': 'rgba(0,0,0,0.1)'
+                'gridcolor': 'rgba(0,0,0,0.1)',
+                'range': [0, max(lcoes_12pct) * 1.15]
             },
-            'annotations': [
-                {
-                    'x': 4,
-                    'y': 28,
-                    'text': 'Solar/wind: steep slope<br>(capital-intensive)',
-                    'showarrow': False,
-                    'font': {'size': 10, 'color': COLORS['solar']}
-                },
-                {
-                    'x': 10,
-                    'y': 75,
-                    'text': 'Gas: flat slope<br>(fuel-driven)',
-                    'showarrow': False,
-                    'font': {'size': 10, 'color': COLORS['gas']}
-                }
-            ]
+            'showlegend': True,
+            'legend': {
+                'x': 0.02,
+                'y': 0.98,
+                'bgcolor': 'rgba(255,255,255,0.8)',
+                'bordercolor': '#ddd',
+                'borderwidth': 1
+            }
         }
     }
 
@@ -3795,6 +3842,7 @@ def main():
         'wind_storage_ceiling': generate_wind_storage_ceiling(zone_data, cost_settings=cost_settings),
         # Solar+storage only LCOE sweep
         'solar_storage_lcoe': generate_solar_storage_lcoe(zone_data, cost_settings=cost_settings),
+        'solar_storage_lcoe_cheap': generate_solar_storage_lcoe_cheap(zone_data, cost_settings=cost_settings),
         'storage_cost_sensitivity': generate_storage_cost_sensitivity(zone_data, cost_settings=cost_settings)
     }
 

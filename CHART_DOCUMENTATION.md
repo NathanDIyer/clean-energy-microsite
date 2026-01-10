@@ -337,7 +337,48 @@ The frontend (`js/charts.js`) loads these JSON files and renders them with Plotl
 
 ---
 
-### 20. Clean Firm Technology (`cleanfirm_tech.json`)
+### 20. Clean Firm Cost Sensitivity (`cf_cost_sensitivity_*.json`)
+**Script**: `generate_cf_cost_sensitivity.py`
+
+**What it shows**: How clean firm capacity varies with clean firm cost across different renewable cost scenarios
+
+**Files generated**:
+- `cf_cost_sensitivity_80pct.json` - 80% clean match target
+- `cf_cost_sensitivity_90pct.json` - 90% clean match target (primary chart)
+- `cf_cost_sensitivity_100pct.json` - 100% clean match target
+- `cf_cost_sensitivity_crossover.json` - Cost threshold analysis
+
+**How it works**:
+- Sweeps clean firm cost at key price points: $1k, $2k, $3k, $4k, $5k, $7k, $10k, $12k (8 points)
+- For each CF cost point, runs V4 optimizer to find optimal portfolio
+- Tests three renewable cost scenarios:
+  - **Low Cost Renewables**: Solar $500/kW, Wind $700/kW, Battery $100/kWh
+  - **Default Renewables**: Solar $1,000/kW, Wind $1,200/kW, Battery $300/kWh
+  - **High Cost Renewables**: Solar $1,500/kW, Wind $1,800/kW, Battery $450/kWh
+- Uses hybrid battery mode and min_lcoe optimization strategy
+- Applies linear interpolation from start to end point (where CF capacity hits zero)
+- Enforces monotonic decrease to ensure capacity only decreases as CF costs increase
+- Plots optimal clean firm capacity (MW) vs clean firm cost ($/kW) with straight lines
+
+**Chart types**:
+- **80pct, 90pct, 100pct**: Line charts with 3 traces (low/default/high renewable costs)
+- **Crossover**: Shows CF cost threshold where clean firm becomes 50%+ of clean capacity
+
+**Key findings**:
+- **90% target with low cost renewables**: CF must be <$3,000/kW to compete
+- **90% target with default costs**: CF economic up to ~$5,000/kW
+- **90% target with high cost renewables**: CF viable even at $7,000+/kW
+- Higher clean energy targets shift the crossover point—clean firm becomes more valuable
+- This is fundamentally a **cost crossover issue**: both clean firm AND renewables have roles depending on relative costs
+
+**Usage in microsite**:
+- Primary chart (90pct) shown prominently with explanation
+- 80pct and 100pct charts in collapsible details sections
+- Demonstrates that clean firm benefits are real but cost-dependent
+
+---
+
+### 21. Clean Firm Technology (`cleanfirm_tech.json`)
 **Function**: `generate_cleanfirm_comparison()`
 
 **What it shows**: How different clean firm technologies compare under different financing
@@ -349,7 +390,7 @@ The frontend (`js/charts.js`) loads these JSON files and renders them with Plotl
 
 ---
 
-### 21. Financing Impact (`financing.json`)
+### 22. Financing Impact (`financing.json`)
 **Function**: `generate_financing_impact()`
 
 **What it shows**: Cost of capital vs ITC impact
@@ -362,7 +403,7 @@ The frontend (`js/charts.js`) loads these JSON files and renders them with Plotl
 
 ---
 
-### 22. No Wind (`no_wind.json`)
+### 23. No Wind (`no_wind.json`)
 **Function**: `generate_no_wind_chart()`
 
 **What it shows**: Three scenarios comparing resource availability
@@ -374,7 +415,7 @@ The frontend (`js/charts.js`) loads these JSON files and renders them with Plotl
 
 ---
 
-### 23. Greedy vs Optimal (`greedy.json`)
+### 24. Greedy vs Optimal (`greedy.json`)
 **Function**: `generate_greedy_comparison()`
 
 **What it shows**: Cost penalty of naive "greedy" optimization
@@ -392,8 +433,39 @@ The frontend (`js/charts.js`) loads these JSON files and renders them with Plotl
 ### Solar Paradox (`solar_paradox.json`)
 Shows solar-only ceiling at ~50% clean energy. Sweeps solar 0-1000 MW with no other resources.
 
+### Gas Capacity VRE (`gas_capacity_vre.json`)
+**Function**: `generate_gas_capacity_vre_sweep()` in `generate_gas_capacity_vre.py`
+
+**What it shows**: Gas backup capacity required when using only solar, wind, and batteries (no clean firm)
+
+**How it works**:
+- Sweeps clean targets from 0% to 100% in 5% increments
+- Optimization uses hybrid battery mode, min_lcoe strategy
+- Only solar, wind, and storage enabled (clean firm disabled)
+- Default cost settings
+- Line chart with:
+  - Red line with shaded fill: Gas capacity needed (MW)
+  - Dashed line: Peak load reference
+  - Annotation showing % of peak needed at 95% clean
+
+**Key insight**: Even at 90% clean energy with VRE only, you still need ~70% of peak load as backup gas capacity. VRE can reduce utilization but not the capacity requirement.
+
+### Gas LCOE Impact VRE (`gas_lcoe_vre.json`)
+**Function**: `generate_gas_capacity_vre_sweep()` in `generate_gas_capacity_vre.py`
+
+**What it shows**: Total system LCOE and gas contribution for VRE-only systems
+
+**How it works**:
+- Same optimization as gas_capacity_vre.json
+- Line chart with:
+  - Black line: Total System LCOE
+  - Red line with shaded fill: Gas contribution to LCOE
+- Annotations at 20% and 90% clean targets
+
+**Key insight**: Despite high gas capacity requirements, gas LCOE contribution drops dramatically at high clean targets. At 90% clean, gas adds only ~$30/MWh because it runs <10% of hours. Low utilization = low fuel costs.
+
 ### Gas Capacity (`gas_capacity.json`)
-Shows backup gas capacity needed vs clean target.
+Shows backup gas capacity needed vs clean target (includes all technologies).
 
 ### Resource Interactions (`resource_interactions.json`)
 Shows synergy between solar+storage vs solar+wind.
